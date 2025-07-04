@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto+Mono&display=swap');
+
+/* theme variables */
+:root {
+  --bg:        235 245 255; /* light blue */
+  --fg:        31 41 55;    /* gray-800 */
+  --primary:   59 130 246;  /* blue-500 */
+  --secondary: 249 115 22;  /* orange-500 */
+  --accent:    16 185 129;  /* emerald-500 */
+}
+
+/* dark mode overrides */
+.dark {
+  --bg:        30 41 59;    /* slate-800 */
+  --fg:        241 245 249; /* slate-100 */
+  --primary:   96 165 250;  /* blue-400 */
+  --secondary: 249 115 22;  /* same orange */
+  --accent:    52 211 153;  /* emerald-400 */
+}
+
+/* Tailwind layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* override font-families globally */
+body {
+  font-family: Inter, sans-serif;
+}
