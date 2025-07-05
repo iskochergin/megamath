@@ -20,6 +20,9 @@ const config: Config = {
                 secondary: v("--secondary"),
                 accent: v("--accent"),
             },
+            caretColor: {
+                primary: v("--primary"),
+            },
             boxShadow: {
                 card: "0 20px 30px -10px rgb(var(--bg) / 0.5)",
             },
@@ -28,11 +31,23 @@ const config: Config = {
                 pop: {
                     "0%": {transform: "scale(0.95)"},
                     "50%": {transform: "scale(1.05)"},
-                    "100%": {transform: "scale(1)"}
+                    "100%": {transform: "scale(1)"},
+                },
+                shake: {
+                    "0%": {transform: "translateX(0)"},
+                    "25%": {transform: "translateX(-5px)"},
+                    "75%": {transform: "translateX(5px)"},
+                    "100%": {transform: "translateX(0)"},
+                },
+                slideIn: {
+                    "0%": {transform: "translateX(100%)"},
+                    "100%": {transform: "translateX(0)"},
                 },
             },
             animation: {
-                pop: "pop 0.3s ease-in-out"
+                pop: "pop 0.3s ease-in-out",
+                shake: "shake 0.4s ease-in-out",
+                slideIn: "slideIn 0.5s ease-out",
             },
         },
     },
