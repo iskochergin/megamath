@@ -6,19 +6,18 @@ const config: Config = {
     darkMode: "class",
     content: [
         "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-        "./src/components/**/*.{js,ts,jsx,tsx,mdx}"
+        "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     ],
     theme: {
         extend: {
-            fontFamily: {
-                mono: ["Roboto Mono", "monospace"],
-            },
             colors: {
-                background: v("--bg"),
-                foreground: v("--fg"),
-                primary: v("--primary"),
-                secondary: v("--secondary"),
-                accent: v("--accent"),
+                "fig-bg": "#FFFDEB",
+                "fig-dark": "#35385A",
+                "fig-muted": "#6BB29E",
+                "fig-warn": "#F28E71",
+            },
+            fontFamily: {
+                kantumruy: ["'Kantumruy Pro'", "sans-serif"],
             },
             caretColor: {
                 primary: v("--primary"),
@@ -43,11 +42,16 @@ const config: Config = {
                     "0%": {transform: "translateX(100%)"},
                     "100%": {transform: "translateX(0)"},
                 },
+                fade: {
+                    "0%": {opacity: "0", transform: "scale(0.9)"},
+                    "100%": {opacity: "1", transform: "scale(1)"},
+                },
             },
             animation: {
                 pop: "pop 0.3s ease-in-out",
                 shake: "shake 0.4s ease-in-out",
                 slideIn: "slideIn 0.5s ease-out",
+                fade: "fade 250ms ease-out forwards",
             },
         },
     },
