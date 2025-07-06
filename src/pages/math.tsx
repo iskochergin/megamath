@@ -8,3 +8,5 @@ const MultiplicationQuiz = dynamic(
 export default function MathPage() {
   return <MultiplicationQuiz />;
 }
+
+
