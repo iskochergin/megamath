@@ -1,4 +1,3 @@
-// pages/multiplication.tsx
 import React, {useState, useEffect, useRef} from "react";
 import Head from "next/head";
 import Navbar from "../components/Navbar";

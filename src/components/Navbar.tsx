@@ -15,9 +15,9 @@ const Navbar: FC<NavbarProps> = ({pageTitle}) => {
     return (
         <motion.header
             className="fixed top-0 w-full z-50 px-4 pt-4"
-            initial={{y: -30, opacity: 0}}
+/*            initial={{y: -30, opacity: 0}}
             animate={{y: 0, opacity: 1}}
-            transition={{duration: 0.5, delay: 0.1, ease: [0.39, 0.21, 0.12, 0.96]}}
+            transition={{duration: 0.5, delay: 0.1, ease: [0.39, 0.21, 0.12, 0.96]}}*/
         >
             <nav
                 className="

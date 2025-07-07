@@ -1,32 +1,74 @@
-import Link from 'next/link'
-import {IoMdCalculator} from 'react-icons/io'
-import Header from '../components/Header'
+// pages/index.tsx
+import React from "react";
+import {execSync} from "child_process";
+import Link from "next/link";
+import {GetStaticProps} from "next";
+import Navbar from "../components/Navbar";
+import {GridPattern} from "@/components/GridPattern";
+import OperationIcon from "@/components/OperationIcon";
+import Footer from "@/components/Footer";
 
-export default function Home() {
+type Tile = { href: string; type: "add" | "sub" | "mult" | "div"; label: string };
+
+export default function Home({lastUpdated}: { lastUpdated: string }) {
+    const tiles: Tile[] = [
+        {href: "/add", type: "add", label: "Addition"},
+        {href: "/sub", type: "sub", label: "Subtraction"},
+        {href: "/mult", type: "mult", label: "Multiplication"},
+        {href: "/div", type: "div", label: "Division"},
+    ];
+
     return (
-        <div className="min-h-screen bg-background text-foreground pt-16 p-8">
-            <Header/>
+        <>
+            <Navbar pageTitle="megamath"/>
 
-            <div className="
-        grid
-        grid-cols-[repeat(auto-fit,_minmax(200px,_1fr))]
-        gap-8
-      ">
-                <Link
-                    href="/math"
-                    className="
-            flex flex-col items-center justify-center
-            p-6 bg-white dark:bg-gray-800
-            rounded-2xl shadow-card
-            hover:scale-[1.02] transition-transform
-          "
-                >
-                    <IoMdCalculator className="text-primary" size={128}/>
-                    <span className="mt-4 text-2xl font-medium">Math Solver</span>
-                </Link>
+            <main className="relative pt-16 flex flex-col items-center min-h-screen">
+                <GridPattern
+                    width={40}
+                    height={40}
+                    strokeDasharray={0}
+                    className="absolute inset-0"
+                />
 
-                {/* future tiles auto-wrap */}
-            </div>
-        </div>
-    )
+                <section className="relative z-10 flex-1 w-11/12 max-w-4xl px-4 py-8">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold mb-6 text-center">
+                        fast count
+                    </h1>
+
+                    <div className="grid gap-3 sm:gap-4 grid-cols-[repeat(auto-fit,_minmax(135px,_1fr))]">
+                        {tiles.map(({href, type, label}) => (
+                            <Link
+                                key={href}
+                                href={href}
+                                className="
+                  flex flex-col items-center justify-center
+                  px-6 pt-8 pb-4 sm:p-6
+                  bg-[rgb(var(--primary))] dark:bg-[rgb(var(--secondary))]
+                  rounded-2xl shadow-background
+                  hover:scale-[1.02] transition-transform
+                "
+                            >
+                                <OperationIcon type={type} size={64}/>
+                                <span className="mt-2 sm:mt-4 text-base sm:text-xl font-medium">
+                  {label}
+                </span>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+
+                <Footer lastUpdated={lastUpdated}/>
+            </main>
+        </>
+    );
 }
+
+export const getStaticProps: GetStaticProps = async () => {
+    let isoDate: string;
+    try {
+        isoDate = execSync("git log -1 --format=%cI").toString().trim();
+    } catch {
+        isoDate = new Date().toISOString();
+    }
+    return {props: {lastUpdated: isoDate}};
+};
