@@ -17,6 +17,7 @@ export function ThemeSwitcher() {
     useEffect(() => {
         setMounted(true)
     }, [])
+
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -28,6 +29,7 @@ export function ThemeSwitcher() {
     }, [])
 
     const effectiveTheme = theme === 'system' ? systemTheme : theme
+
     useEffect(() => {
         if (!mounted || !effectiveTheme) return
         const root = document.documentElement
@@ -36,36 +38,42 @@ export function ThemeSwitcher() {
     }, [effectiveTheme, mounted])
 
     if (!mounted) return null
-    const current = OPTIONS.find(o => o.value === theme)!
+
+    const currentOpt = OPTIONS.find(o => o.value === theme)!
 
     return (
         <div ref={ref} className="relative">
             <button
                 onClick={() => setOpen(o => !o)}
-                aria-label={`Switch theme (current: ${current.label})`}
+                aria-label={`Switch theme (current: ${currentOpt.label})`}
                 className="
           flex items-center justify-center
-          w-10 h-10 rounded-md
+          w-10 h-10
+          rounded-md
           bg-background/80 dark:bg-neutral-800
           border border-neutral-200 dark:border-neutral-700
           hover:bg-foreground/10 dark:hover:bg-neutral-700
           transition
         "
             >
-                {current.icon}
+                {currentOpt.icon}
             </button>
+
             {open && (
-                <ul className="
-          absolute left-0 top-full mt-1 w-10
-          bg-background/80 dark:bg-neutral-800
-          border border-neutral-200 dark:border-neutral-700
-          rounded-md shadow-lg overflow-hidden
-        ">
-                    {OPTIONS.filter(o => o.value !== theme).map(opt => (
+                <ul
+                    className="
+            absolute left-0 top-full mt-1
+            w-10
+            bg-background/95 dark:bg-neutral-800
+            border border-neutral-200 dark:border-neutral-700
+            rounded-md shadow-lg overflow-hidden
+          "
+                >
+                    {OPTIONS.filter(opt => opt.value !== theme).map(opt => (
                         <li key={opt.value}>
                             <button
                                 onClick={() => {
-                                    setTheme(opt.value);
+                                    setTheme(opt.value)
                                     setOpen(false)
                                 }}
                                 aria-label={opt.label}
