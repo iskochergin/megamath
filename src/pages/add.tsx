@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import {GridPattern} from "@/components/GridPattern";
 
 type Simple = "2-digit" | "3-digit";
-type Extra = "1x2" | "2x3" | "3x4" | "4x4" | "random";
+type Extra = "1+2" | "2+3" | "3+4" | "4+4" | "random";
 type ProblemType = Simple | Extra;
 
 const getRandomNumber = (digits: number) => {
@@ -15,7 +15,7 @@ const getRandomNumber = (digits: number) => {
 
 const AdditionDrill: React.FC = () => {
     const tabs: Simple[] = ["2-digit", "3-digit"];
-    const extra: Extra[] = ["1x2", "2x3", "3x4", "4x4", "random"];
+    const extra: Extra[] = ["1+2", "2+3", "3+4", "4+4", "random"];
 
     const [selected, setSelected] = useState<ProblemType>("2-digit");
     const [showExtra, setShowExtra] = useState(false);
@@ -33,6 +33,10 @@ const AdditionDrill: React.FC = () => {
 
     const [countdown, setCountdown] = useState(0);
     const [isCounting, setIsCounting] = useState(false);
+
+    const btn = "text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg";
+    const btnSmallPad = "max-[360px]:py-1.5 py-2 sm:py-[10px]";
+    const btnWide = `${btn} ${btnSmallPad}`;
 
     // animated dots for "Waiting..."
     const [dotCount, setDotCount] = useState(0);
@@ -63,8 +67,8 @@ const AdditionDrill: React.FC = () => {
         if (selected === "random") {
             d1 = Math.floor(Math.random() * 3) + 2;
             d2 = Math.floor(Math.random() * 3) + 2;
-        } else if (selected.includes("x")) {
-            [d1, d2] = selected.split("x").map(Number);
+        } else if (selected.includes("+")) {
+            [d1, d2] = selected.split("+").map(Number);
         } else {
             d1 = d2 = +selected[0];
         }
@@ -297,70 +301,58 @@ const AdditionDrill: React.FC = () => {
                             inputMode="numeric"
                             value={inputValue}
                             onChange={e => {
-                                setShowExtra(false);
                                 setInputValue(e.target.value.replace(/\D/g, ""));
+                                setShowExtra(false);
                             }}
                             onKeyDown={e => {
                                 if (e.key === "Enter") handleSubmit();
                             }}
-                            className="
-                                w-full text-center text-2xl sm:text-3xl font-semibold
-                                border-2 border-[rgb(var(--accent))]
-                                rounded-lg py-2 sm:py-3 bg-transparent focus:outline-none
-                                placeholder-opacity-50
-                            "
+                            className="w-full text-center text-2xl font-semibold border-2 border-[rgb(var(--accent))] rounded-lg py-2 sm:py-3 bg-transparent focus:outline-none placeholder-opacity-50"
                             placeholder="your answer"
                         />
                     </div>
 
-                    {/* mobile keypad */}
-                    <div className="grid grid-cols-3 max-[360px]:gap-0.5 gap-1 sm:gap-[6px] md:hidden w-full mx-auto">
-                        {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map(d => (
+                    <div className="md:hidden w-full mx-auto">
+                        <div className="grid grid-cols-3 gap-1 sm:gap-[6px]">
+                            {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map(d => (
+                                <button
+                                    key={d}
+                                    onClick={() => {
+                                        setShowExtra(false);
+                                        setInputValue(v => v + d);
+                                    }}
+                                    className={btnWide}
+                                >
+                                    {d}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 sm:gap-[6px] mt-1">
                             <button
-                                key={d}
                                 onClick={() => {
                                     setShowExtra(false);
-                                    setInputValue(v => v + d);
+                                    setInputValue(v => v.slice(0, -1));
                                 }}
-                                className="
-                                    max-[360px]:py-1 py-2 sm:py-[10px] bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))]
-                                    border border-[rgb(var(--accent))]
-                                    rounded-lg text-xl
-                                "
+                                className={btnWide}
                             >
-                                {d}
+                                Del
                             </button>
-                        ))}
-                        <button
-                            onClick={() => setInputValue("")}
-                            className="
-                                max-[360px]:py-1 py-2 sm:py-[10px] bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))]
-                                border border-[rgb(var(--accent))]
-                                rounded-lg text-sm
-                            "
-                        >
-                            Clear
-                        </button>
-                        <button
-                            onClick={() => setInputValue(v => v + "0")}
-                            className="
-                                max-[360px]:py-1 py-2 sm:py-[10px] bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))]
-                                border border-[rgb(var(--accent))]
-                                rounded-lg text-xl
-                            "
-                        >
-                            0
-                        </button>
-                        <button
-                            onClick={handleSubmit}
-                            className="
-                                py-2 sm:py-3 bg-[rgb(var(--foreground))]
-                                text-[rgb(var(--background))]
-                                rounded-lg text-lg font-medium
-                            "
-                        >
-                            Enter
-                        </button>
+                            <button
+                                onClick={() => {
+                                    setShowExtra(false);
+                                    setInputValue(v => v + "0");
+                                }}
+                                className={btnWide}
+                            >
+                                0
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                className="text-2xl max-[360px]:py-1.5 py-2 sm:py-[10px] bg-[rgb(var(--foreground))] text-[rgb(var(--background))] rounded-lg font-medium"
+                            >
+                                Enter
+                            </button>
+                        </div>
                     </div>
                 </div>
             </main>

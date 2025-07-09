@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import {GridPattern} from "@/components/GridPattern";
 
 type Simple = "2-digit" | "3-digit";
-type Extra = "1x2" | "2x3" | "3x4" | "4x4" | "random";
+type Extra = "1÷2" | "2÷3" | "3÷4" | "4÷4" | "random";
 type ProblemType = Simple | Extra;
 
 const getRandomNumber = (digits: number) => {
@@ -15,7 +15,7 @@ const getRandomNumber = (digits: number) => {
 
 const DivisionDrill: React.FC = () => {
     const tabs: Simple[] = ["2-digit", "3-digit"];
-    const extra: Extra[] = ["1x2", "2x3", "3x4", "4x4", "random"];
+    const extra: Extra[] = ["1÷2", "2÷3", "3÷4", "4÷4", "random"];
 
     const simpleLabels: Record<Simple, string> = {
         "2-digit": "2-digit quotient & 2-digit divisor",
@@ -23,12 +23,16 @@ const DivisionDrill: React.FC = () => {
     };
 
     const extraLabels: Record<Extra, string> = {
-        "1x2": "1-digit quotient, 2-digit divisor",
-        "2x3": "2-digit quotient, 3-digit divisor",
-        "3x4": "3-digit quotient, 4-digit divisor",
-        "4x4": "4-digit quotient, 4-digit divisor",
+        "1÷2": "1-digit quotient, 2-digit divisor",
+        "2÷3": "2-digit quotient, 3-digit divisor",
+        "3÷4": "3-digit quotient, 4-digit divisor",
+        "4÷4": "4-digit quotient, 4-digit divisor",
         random: "Random sizes",
     };
+
+    const btn = "text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg";
+    const btnSmallPad = "max-[360px]:py-1.5 py-2 sm:py-[10px]";
+    const btnWide = `${btn} ${btnSmallPad}`;
 
     const [selected, setSelected] = useState<ProblemType>("2-digit");
     const [showExtra, setShowExtra] = useState(false);
@@ -71,10 +75,10 @@ const DivisionDrill: React.FC = () => {
         if (selected === "random") {
             d1 = Math.floor(Math.random() * 3) + 2;
             d2 = Math.floor(Math.random() * 3) + 2;
-        } else if (selected.includes("x")) {
-            [d1, d2] = selected.split("x").map(Number);
-        } else {
+        } else if (tabs.includes(selected as Simple)) {
             d1 = d2 = +selected[0];
+        } else {
+            [d1, d2] = (selected as string).split("÷").map(Number);
         }
         let divisor: number;
         do {
@@ -135,8 +139,7 @@ const DivisionDrill: React.FC = () => {
     }, [countdown, isCounting]);
 
     const labelFor = (p: ProblemType) =>
-        (simpleLabels as Record<string, string>)[p] ??
-        (extraLabels as Record<string, string>)[p];
+        simpleLabels[p as Simple] ?? extraLabels[p as Extra];
 
     return (
         <>
@@ -239,16 +242,16 @@ const DivisionDrill: React.FC = () => {
 
                     <div className="flex-1 flex flex-col justify-center">
                         <div className="text-center mb-4 sm:mb-6">
-              <span className="text-4xl sm:text-5xl md:text-6xl font-extrabold">
-                {num1} ÷ {num2}
-              </span>
+                            <span className="text-4xl sm:text-5xl md:text-6xl font-extrabold">
+                                {num1} ÷ {num2}
+                            </span>
                         </div>
 
                         <div className="flex items-center justify-center mb-3 sm:mb-4">
                             {totalCount > 3 && (
                                 <span className="text-xs text-[rgb(var(--accent))] mr-2">
-                  +{totalCount - 3}
-                </span>
+                                    +{totalCount - 3}
+                                </span>
                             )}
                             {history.slice(-3).map((ok, i) => (
                                 <span
@@ -286,49 +289,59 @@ const DivisionDrill: React.FC = () => {
                             type="text"
                             inputMode="numeric"
                             value={inputValue}
-                            onChange={(e) => {
+                            onChange={e => {
                                 setShowExtra(false);
                                 setInputValue(e.target.value.replace(/\D/g, ""));
                             }}
-                            onKeyDown={(e) => {
+                            onKeyDown={e => {
                                 if (e.key === "Enter") handleSubmit();
                             }}
-                            className="w-full text-center text-2xl sm:text-3xl font-semibold border-2 border-[rgb(var(--accent))] rounded-lg py-2 sm:py-3 bg-transparent focus:outline-none placeholder-opacity-50"
+                            className="w-full text-center text-2xl font-semibold border-2 border-[rgb(var(--accent))] rounded-lg py-2 sm:py-3 bg-transparent focus:outline-none placeholder-opacity-50"
                             placeholder="your answer"
                         />
                     </div>
 
-                    <div className="grid grid-cols-3 max-[360px]:gap-0.5 gap-1 sm:gap-[6px] md:hidden w-full mx-auto">
-                        {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
+                    <div className="md:hidden w-full mx-auto">
+                        <div className="grid grid-cols-3 gap-1 sm:gap-[6px]">
+                            {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
+                                <button
+                                    key={d}
+                                    onClick={() => {
+                                        setInputValue((v) => v + d);
+                                        setShowExtra(false);
+                                    }}
+                                    className={btnWide}
+                                >
+                                    {d}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 sm:gap-[6px] mt-1">
                             <button
-                                key={d}
                                 onClick={() => {
+                                    setInputValue((v) => v.slice(0, -1));
                                     setShowExtra(false);
-                                    setInputValue((v) => v + d);
                                 }}
-                                className="max-[360px]:py-1 py-2 sm:py-[10px] bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg text-xl"
+                                className={btnWide}
                             >
-                                {d}
+                                Del
                             </button>
-                        ))}
-                        <button
-                            onClick={() => setInputValue("")}
-                            className="max-[360px]:py-1 py-2 sm:py-[10px] bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg text-sm"
-                        >
-                            Clear
-                        </button>
-                        <button
-                            onClick={() => setInputValue((v) => v + "0")}
-                            className="max-[360px]:py-1 py-2 sm:py-[10px] bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg text-xl"
-                        >
-                            0
-                        </button>
-                        <button
-                            onClick={handleSubmit}
-                            className="py-2 sm:py-3 bg-[rgb(var(--foreground))] text-[rgb(var(--background))] rounded-lg text-lg font-medium"
-                        >
-                            Enter
-                        </button>
+                            <button
+                                onClick={() => {
+                                    setInputValue((v) => v + "0");
+                                    setShowExtra(false);
+                                }}
+                                className={btnWide}
+                            >
+                                0
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                className="text-2xl max-[360px]:py-1.5 py-2 sm:py-[10px] bg-[rgb(var(--foreground))] text-[rgb(var(--background))] rounded-lg font-medium"
+                            >
+                                Enter
+                            </button>
+                        </div>
                     </div>
                 </div>
             </main>
