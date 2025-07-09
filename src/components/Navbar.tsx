@@ -1,24 +1,29 @@
-// src/components/Navbar.tsx
-import React, {FC} from 'react';
-import {motion} from 'framer-motion';
-import {useRouter} from 'next/router';
-import {ArrowLeft} from 'lucide-react';
-import {ThemeSwitcher} from './ThemeSwitcher';
+import React, {FC} from 'react'
+import {motion} from 'framer-motion'
+import {useRouter} from 'next/router'
+import {ArrowLeft} from 'lucide-react'
+import {ThemeSwitcher} from './ThemeSwitcher'
 
 interface NavbarProps {
-    pageTitle?: string;
+    pageTitle?: string
 }
 
 const Navbar: FC<NavbarProps> = ({pageTitle}) => {
-    const router = useRouter();
+    const router = useRouter()
+    const isMe = pageTitle === 'megamath'
+
+    // shared “slot” styles:
+    const slotClasses = `
+    flex-shrink-0 flex items-center justify-center
+    w-10 h-10 rounded-md
+    bg-background/80 dark:bg-neutral-800
+    border border-neutral-200 dark:border-neutral-700
+    hover:bg-foreground/10 dark:hover:bg-neutral-700
+    transition overflow-hidden
+  `
 
     return (
-        <motion.header
-            className="fixed top-0 w-full z-50 px-4 pt-4"
-/*            initial={{y: -30, opacity: 0}}
-            animate={{y: 0, opacity: 1}}
-            transition={{duration: 0.5, delay: 0.1, ease: [0.39, 0.21, 0.12, 0.96]}}*/
-        >
+        <motion.header className="fixed top-0 w-full z-50 px-4 pt-4">
             <nav
                 className="
           navbar-glass shadow-background dark:shadow-[0_20px_30px_-10px_rgba(0,0,0,0.2)]
@@ -26,16 +31,24 @@ const Navbar: FC<NavbarProps> = ({pageTitle}) => {
           w-full max-w-[46rem] h-14
           bg-gradient-to-br from-primary/90 to-secondary/90
           backdrop-blur-md rounded-lg border border-accent
-          px-4
+          px-2
         "
             >
-                {/* Left: back icon + brand */}
-                <button
-                    onClick={() => router.push('/')}
-                    className="flex items-center space-x-2 flex-shrink-0"
-                >
-                    <ArrowLeft className="w-6 h-6 text-foreground"/>
-                </button>
+                {/* Left: avatar (no pointer) or back-arrow */}
+                {isMe ? (
+                    <div onClick={() => router.push('/')} className={slotClasses}>
+                        <img
+                            src="/nerd.jpg"
+                            alt="me"
+                            draggable={false}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                ) : (
+                    <button onClick={() => router.push('/')} className={slotClasses}>
+                        <ArrowLeft className="w-6 h-6 text-foreground"/>
+                    </button>
+                )}
 
                 {/* Centered title */}
                 {pageTitle && (
@@ -52,7 +65,7 @@ const Navbar: FC<NavbarProps> = ({pageTitle}) => {
                 </div>
             </nav>
         </motion.header>
-    );
-};
+    )
+}
 
-export default Navbar;
+export default Navbar
