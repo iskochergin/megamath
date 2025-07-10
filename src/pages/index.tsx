@@ -16,6 +16,7 @@ type Tile = {
 export default function Home({lastUpdated}: { lastUpdated: string }) {
     const satTiles: Tile[] = [
         {href: "/sat-arith", type: "satArith", label: "Arithmetic"},
+        {href: "/sat-alg", type: "satAlg", label: "Algebra I"},
     ];
 
     const fastTiles: Tile[] = [
@@ -37,7 +38,6 @@ export default function Home({lastUpdated}: { lastUpdated: string }) {
                     className="absolute inset-0"
                 />
 
-                {/* SAT PREP */}
                 <section className="relative z-10 flex-1 w-11/12 max-w-4xl px-4 py-8">
                     <h1 className="text-3xl sm:text-4xl font-extrabold mb-6 text-center">
                         sat prep
@@ -64,7 +64,6 @@ export default function Home({lastUpdated}: { lastUpdated: string }) {
                     </div>
                 </section>
 
-                {/* FAST COUNT */}
                 <section className="relative z-10 flex-1 w-11/12 max-w-4xl px-4 py-8">
                     <h1 className="text-3xl sm:text-4xl font-extrabold mb-6 text-center">
                         fast count

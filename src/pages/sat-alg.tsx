@@ -3,17 +3,14 @@ import Head from "next/head";
 import Navbar from "../components/Navbar";
 import {GridPattern} from "@/components/GridPattern";
 
-type ProblemType = "percent" | "simplify" | "add-fraction" | "random";
+type ProblemType = "one-step" | "two-step" | "evaluate" | "random";
 
 const randInt = (min: number, max: number) =>
     Math.floor(Math.random() * (max - min + 1)) + min;
 
-const gcd = (a: number, b: number): number =>
-    b === 0 ? a : gcd(b, a % b);
-
-const SATArithmeticDrill: React.FC = () => {
-    const tabs: ProblemType[] = ["percent", "simplify", "add-fraction", "random"];
-    const [selected, setSelected] = useState<ProblemType>("percent");
+const AlgebraDrill: React.FC = () => {
+    const tabs: ProblemType[] = ["one-step", "two-step", "evaluate", "random"];
+    const [selected, setSelected] = useState<ProblemType>("one-step");
     const [question, setQuestion] = useState("");
     const [correct, setCorrect] = useState<string>("");
     const [inputValue, setInputValue] = useState("");
@@ -30,7 +27,7 @@ const SATArithmeticDrill: React.FC = () => {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        const iv = setInterval(() => setDotCount((c) => (c + 1) % 4), 500);
+        const iv = setInterval(() => setDotCount(c => (c + 1) % 4), 500);
         return () => clearInterval(iv);
     }, []);
 
@@ -41,7 +38,7 @@ const SATArithmeticDrill: React.FC = () => {
     useEffect(() => setMounted(true), []);
 
     useEffect(() => {
-        const b = localStorage.getItem("best_arithmetic");
+        const b = localStorage.getItem("best_algebra");
         if (b) setBestTime(parseFloat(b));
     }, []);
 
@@ -52,39 +49,31 @@ const SATArithmeticDrill: React.FC = () => {
             selected === "random"
                 ? tabs[randInt(0, tabs.length - 1)]
                 : selected;
-        if (type === "percent") {
-            const p = [5, 10, 15, 20, 25, 30, 40, 50][randInt(0, 7)];
-            const n = randInt(20, 200);
-            q = `What is ${p}% of ${n}?`;
-            ans = ((p / 100) * n).toString();
-        } else if (type === "simplify") {
-            let d1 = randInt(10, 99);
-            let d2 = randInt(10, 99);
-            while (gcd(d1, d2) === 1) {
-                d1 = randInt(10, 99);
-                d2 = randInt(10, 99);
-            }
-            const g = gcd(d1, d2);
-            q = `Simplify ${d1}/${d2}`;
-            ans = `${d1 / g}/${d2 / g}`;
-        } else if (type === "add-fraction") {
-            let a: number, b: number, c: number, d: number;
-            let num: number, den: number, g: number;
-            do {
-                b = randInt(5, 30);
-                d = randInt(5, 30);
-                while (d === b) d = randInt(5, 20);
-                a = randInt(1, b - 1);
-                c = randInt(1, d - 1);
-                num = a * d + c * b;
-                den = b * d;
-                g = gcd(num, den);
-                num = num / g;
-                den = den / g;
-            } while (num > 99 || den > 99);
-            q = `What is ${a}/${b} + ${c}/${d}?`;
-            ans = `${num}/${den}`;
+
+        if (type === "one-step") {
+            const a = randInt(2, 12);
+            const b = randInt(-20, 20);
+            const x0 = randInt(-20, 20);
+            const c = a * x0 + b;
+            q = `Solve for x: ${a}x${b >= 0 ? "+" + b : b} = ${c}`;
+            ans = x0.toString();
+        } else if (type === "two-step") {
+            const m = randInt(2, 12);
+            const shift = randInt(-10, 10);
+            const x0 = randInt(-20, 20);
+            const c = m * (x0 + shift);
+            q = `Solve for x: ${m}(x${shift >= 0 ? "+" + shift : shift}) = ${c}`;
+            ans = x0.toString();
+        } else if (type === "evaluate") {
+            let a = randInt(-10, 10);
+            if (a === 0) a = 1;
+            const b = randInt(-20, 20);
+            const x0 = randInt(-10, 10);
+            const val = a * x0 + b;
+            q = `Evaluate ${a}x${b >= 0 ? "+" + b : b} at x = ${x0}`;
+            ans = val.toString();
         }
+
         setQuestion(q);
         setCorrect(ans);
         setInputValue("");
@@ -115,11 +104,11 @@ const SATArithmeticDrill: React.FC = () => {
         const elapsed = (Date.now() - startTime) / 1000;
         if (ok && (bestTime === null || elapsed < bestTime)) {
             setBestTime(elapsed);
-            localStorage.setItem("best_arithmetic", `${elapsed}`);
+            localStorage.setItem("best_algebra", `${elapsed}`);
         }
         setFeedback(ok ? "Correct!" : `Wrong: ${correct}`);
-        setHistory((h) => [...h, ok]);
-        setTotalCount((c) => c + 1);
+        setHistory(h => [...h, ok]);
+        setTotalCount(c => c + 1);
         setIsCounting(true);
         setCountdown(3);
     };
@@ -127,14 +116,14 @@ const SATArithmeticDrill: React.FC = () => {
     useEffect(() => {
         if (!isCounting) return;
         if (countdown > 0) {
-            const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+            const t = setTimeout(() => setCountdown(c => c - 1), 1000);
             return () => clearTimeout(t);
         } else {
             genProblem();
         }
     }, [countdown, isCounting]);
 
-    const sanitize = (s: string) => s.replace(/[^0-9./]/g, "");
+    const sanitize = (s: string) => s.replace(/[^0-9.-]/g, "");
 
     return (
         <>
@@ -143,9 +132,11 @@ const SATArithmeticDrill: React.FC = () => {
                     href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;500;600;700;800&display=swap"
                     rel="stylesheet"
                 />
-                <title>SAT Arithmetic Drill</title>
+                <title>SAT Algebra I Drill</title>
             </Head>
-            <Navbar pageTitle="sat arithmetic"/>
+
+            <Navbar pageTitle="algebra"/>
+
             <main className="relative pt-16 flex items-center justify-end min-h-[calc(100vh-4rem)] md:justify-center">
                 <GridPattern
                     width={40}
@@ -153,9 +144,10 @@ const SATArithmeticDrill: React.FC = () => {
                     strokeDasharray={0}
                     className="absolute inset-0"
                 />
+
                 <div
                     className={`
-            relative z-10 mt-6 w-11/12 sm:w-10/12 md:w-2/3 lg:w-1/2 xl:w-5/12
+            relative z-10 mt-6 w-11/12 sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-1/2
             max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl
             mx-auto bg-[rgb(var(--primary))] dark:bg-[rgb(var(--secondary))]
             text-[rgb(var(--foreground))] p-3 sm:p-6 md:p-8 lg:p-12
@@ -165,47 +157,49 @@ const SATArithmeticDrill: React.FC = () => {
                 >
                     <div className="text-right text-sm mb-3 sm:mb-4">
                         <a
-                            href="https://www.khanacademy.org/test-prep/v2-sat-math"
+                            href="https://www.khanacademy.org/math/algebra/one-variable-linear-equations"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="underline"
                         >
-                            SAT Arithmetic Guide
+                            Algebra I Guide
                         </a>
                     </div>
+
                     <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-4 sm:mb-6">
-                        {tabs.map((t) => (
+                        {tabs.map(t => (
                             <button
                                 key={t}
                                 onClick={() => setSelected(t)}
                                 className={`
                   flex-1 min-w-[80px] py-1.5 sm:py-2 rounded-lg text-sm font-medium
-                  ${
-                                    selected === t
-                                        ? "bg-[rgb(var(--accent))] dark:bg-white dark:text-black"
-                                        : "bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))]"
-                                }
+                  ${selected === t
+                                    ? "bg-[rgb(var(--accent))] dark:bg-white dark:text-black"
+                                    : "bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))]"}
                 `}
                             >
-                                {t === "percent"
-                                    ? "Percent"
-                                    : t === "simplify"
-                                        ? "Simplify"
-                                        : t === "add-fraction"
-                                            ? "Add Fraction"
+                                {t === "one-step"
+                                    ? "Solve"
+                                    : t === "two-step"
+                                        ? "Multi-Step"
+                                        : t === "evaluate"
+                                            ? "Evaluate"
                                             : "Random"}
                             </button>
                         ))}
                     </div>
+
                     <div className="flex justify-between text-sm mb-3 sm:mb-4">
                         <div>Current: {currentTime.toFixed(2)} s</div>
                         <div>Best: {bestTime?.toFixed(2) ?? "--"} s</div>
                     </div>
+
                     <div className="text-center mb-4 sm:mb-6">
             <span className="text-3xl sm:text-4xl md:text-5xl font-extrabold">
               {question}
             </span>
                     </div>
+
                     <div className="flex items-center justify-center mb-3 sm:mb-4">
                         {totalCount > 3 && (
                             <span className="text-xs text-[rgb(var(--accent))] mr-2">
@@ -224,6 +218,7 @@ const SATArithmeticDrill: React.FC = () => {
                             />
                         ))}
                     </div>
+
                     <div className="text-center mb-3 sm:mb-4 min-h-[1.25rem]">
                         {feedback ? (
                             <>
@@ -240,70 +235,67 @@ const SATArithmeticDrill: React.FC = () => {
                             </div>
                         )}
                     </div>
-                    {(selected === "add-fraction" || selected === "simplify") && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">
-                            Enter answer as simplified a/b
-                        </div>
-                    )}
+
                     <div className="mb-4 sm:mb-6">
                         <input
                             ref={inputRef}
                             type="text"
-                            inputMode="decimal"
+                            inputMode="numeric"
                             value={inputValue}
-                            onChange={(e) => setInputValue(sanitize(e.target.value))}
-                            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                            onChange={e => setInputValue(sanitize(e.target.value))}
+                            onKeyDown={e => e.key === "Enter" && handleSubmit()}
                             className="w-full text-center text-2xl font-semibold border-2 border-[rgb(var(--accent))] rounded-lg py-2 sm:py-3 bg-transparent focus:outline-none placeholder-opacity-50"
                             placeholder="your answer"
                         />
                     </div>
+
                     <div className="md:hidden w-full mx-auto">
-                        <div className="grid grid-cols-4 gap-1 sm:gap-[6px]">
-                            {["7", "8", "9", "0"].map((d) => (
+                        <div className="grid grid-cols-3 gap-1 sm:gap-[6px]">
+                            {["7", "8", "9"].map(d => (
                                 <button
                                     key={d}
-                                    onClick={() => setInputValue((v) => v + d)}
-                                    className="text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg py-2 sm:py-[10px]"
+                                    onClick={() => setInputValue(v => v + d)}
+                                    className="text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg max-[360px]:py-1.5 py-2 sm:py-[10px]"
                                 >
                                     {d}
                                 </button>
                             ))}
                         </div>
                         <div className="grid grid-cols-3 gap-1 sm:gap-[6px] mt-1">
-                            {["4", "5", "6"].map((d) => (
+                            {["4", "5", "6"].map(d => (
                                 <button
                                     key={d}
-                                    onClick={() => setInputValue((v) => v + d)}
-                                    className="text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg py-2 sm:py-[10px]"
+                                    onClick={() => setInputValue(v => v + d)}
+                                    className="text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg max-[360px]:py-1.5 py-2 sm:py-[10px]"
                                 >
                                     {d}
                                 </button>
                             ))}
                         </div>
                         <div className="grid grid-cols-3 gap-1 sm:gap-[6px] mt-1">
-                            {["1", "2", "3"].map((d) => (
+                            {["1", "2", "3"].map(d => (
                                 <button
                                     key={d}
-                                    onClick={() => setInputValue((v) => v + d)}
-                                    className="text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg py-2 sm:py-[10px]"
+                                    onClick={() => setInputValue(v => v + d)}
+                                    className="text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg max-[360px]:py-1.5 py-2 sm:py-[10px]"
                                 >
                                     {d}
                                 </button>
                             ))}
                         </div>
                         <div className="grid grid-cols-4 gap-1 sm:gap-[6px] mt-1">
-                            {["Del", ".", "/", "Enter"].map((d) => {
+                            {["Del", ".", "0", "Enter"].map(d => {
                                 const isEnter = d === "Enter";
                                 const cls = isEnter
-                                    ? "text-2xl py-2 sm:py-[10px] bg-[rgb(var(--foreground))] text-[rgb(var(--background))] rounded-lg font-medium"
-                                    : "text-2xl bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg py-2 sm:py-[10px]";
+                                    ? "text-2xl max-[360px]:py-1.5 py-2 sm:py-[10px] bg-[rgb(var(--foreground))] text-[rgb(var(--background))] rounded-lg font-medium"
+                                    : "text-2xl max-[360px]:py-1.5 py-2 sm:py-[10px] bg-[rgb(var(--background))] dark:bg-[rgb(var(--primary))] border border-[rgb(var(--accent))] rounded-lg";
                                 return (
                                     <button
                                         key={d}
                                         onClick={() => {
-                                            if (d === "Del") setInputValue((v) => v.slice(0, -1));
+                                            if (d === "Del") setInputValue(v => v.slice(0, -1));
                                             else if (d === "Enter") handleSubmit();
-                                            else setInputValue((v) => v + d);
+                                            else setInputValue(v => v + d);
                                         }}
                                         className={cls}
                                     >
@@ -319,4 +311,4 @@ const SATArithmeticDrill: React.FC = () => {
     );
 };
 
-export default SATArithmeticDrill;
+export default AlgebraDrill;

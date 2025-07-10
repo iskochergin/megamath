@@ -5,7 +5,8 @@ export type OperationType =
     | "sub"
     | "mult"
     | "div"
-    | "satArith";
+    | "satArith"
+    | "satAlg";
 
 const symbols: Record<OperationType, string> = {
     add: "+",
@@ -13,6 +14,7 @@ const symbols: Record<OperationType, string> = {
     mult: "×",
     div: "÷",
     satArith: "5% of 2?",
+    satAlg: "6x+9=0",
 };
 
 export default function OperationIcon({
@@ -21,13 +23,15 @@ export default function OperationIcon({
     type: OperationType;
 }) {
     const sizeClass =
-        type === "satArith" ? "text-[50px]" : "text-[64px]";
+        type === "satArith" || type === "satAlg"
+            ? "text-[50px]"
+            : "text-[64px]";
 
     return (
         <span
             className={`${sizeClass} font-extrabold text-black dark:text-white`}
         >
-      {symbols[type]}
-    </span>
+            {symbols[type]}
+        </span>
     );
 }
