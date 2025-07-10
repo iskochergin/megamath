@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 import React, {FC} from 'react'
 import {motion} from 'framer-motion'
 import {useRouter} from 'next/router'
@@ -53,7 +54,13 @@ const Navbar: FC<NavbarProps> = ({pageTitle}) => {
                 {/* Centered title */}
                 {pageTitle && (
                     <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <span className="text-xl font-semibold text-foreground">
+            <span
+                className={
+                    isMe
+                        ? 'text-2xl font-bold text-foreground'
+                        : 'text-xl font-semibold text-foreground'
+                }
+            >
               {pageTitle}
             </span>
                     </div>
