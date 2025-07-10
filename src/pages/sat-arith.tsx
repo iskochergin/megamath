@@ -68,16 +68,22 @@ const SATArithmeticDrill: React.FC = () => {
             q = `Simplify ${d1}/${d2}`;
             ans = `${d1 / g}/${d2 / g}`;
         } else if (type === "add-fraction") {
-            const b = randInt(10, 20);
-            let d = randInt(10, 20);
-            while (d === b) d = randInt(10, 20);
-            const a = randInt(1, b - 1);
-            const c = randInt(1, d - 1);
-            const num = a * d + c * b;
-            const den = b * d;
-            const g = gcd(num, den);
+            let a: number, b: number, c: number, d: number;
+            let num: number, den: number, g: number;
+            do {
+                b = randInt(5, 30);
+                d = randInt(5, 30);
+                while (d === b) d = randInt(5, 20);
+                a = randInt(1, b - 1);
+                c = randInt(1, d - 1);
+                num = a * d + c * b;
+                den = b * d;
+                g = gcd(num, den);
+                num = num / g;
+                den = den / g;
+            } while (num > 99 || den > 99);
             q = `What is ${a}/${b} + ${c}/${d}?`;
-            ans = `${num / g}/${den / g}`;
+            ans = `${num}/${den}`;
         }
         setQuestion(q);
         setCorrect(ans);
@@ -159,7 +165,7 @@ const SATArithmeticDrill: React.FC = () => {
                 >
                     <div className="text-right text-sm mb-3 sm:mb-4">
                         <a
-                            href="https://collegereadiness.collegeboard.org/sat/practice"
+                            href="https://www.khanacademy.org/test-prep/v2-sat-math"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="underline"
@@ -236,7 +242,7 @@ const SATArithmeticDrill: React.FC = () => {
                     </div>
                     {(selected === "add-fraction" || selected === "simplify") && (
                         <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">
-                            Enter answer as a/b
+                            Enter answer as simplified a/b
                         </div>
                     )}
                     <div className="mb-4 sm:mb-6">
