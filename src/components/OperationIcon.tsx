@@ -13,7 +13,7 @@ const symbols: Record<OperationType, string> = {
     sub: "−",
     mult: "×",
     div: "÷",
-    satArith: "5% of 2?",
+    satArith: "5%×2?",
     satAlg: "6x+9=0",
 };
 
@@ -24,8 +24,8 @@ export default function OperationIcon({
 }) {
     const sizeClass =
         type === "satArith" || type === "satAlg"
-            ? "text-[50px]"
-            : "text-[64px]";
+            ? "text-[38px] sm:text-[50px] md:text-[55px]"
+            : "text-[64px] sm:text-[64px] md:text-[64px]";
 
     return (
         <span

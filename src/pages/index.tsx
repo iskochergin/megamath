@@ -64,7 +64,7 @@ export default function Home({lastUpdated}: { lastUpdated: string }) {
                     </div>
                 </section>
 
-                <section className="relative z-10 flex-1 w-11/12 max-w-4xl px-4 py-8">
+                <section className="relative z-10 flex-1 w-11/12 max-w-4xl px-4 py-0">
                     <h1 className="text-3xl sm:text-4xl font-extrabold mb-6 text-center">
                         fast count
                     </h1>
