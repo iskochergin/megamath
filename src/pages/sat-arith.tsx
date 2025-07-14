@@ -56,7 +56,7 @@ const SATArithmeticDrill: React.FC = () => {
             const p = [5, 10, 15, 20, 25, 30, 40, 50][randInt(0, 7)];
             const n = randInt(20, 200);
             q = `What is ${p}% of ${n}?`;
-            ans = ((p / 100) * n).toString();
+            ans = parseFloat(((p / 100) * n).toFixed(4)).toString();
         } else if (type === "simplify") {
             let d1 = randInt(10, 99);
             let d2 = randInt(10, 99);
@@ -73,7 +73,7 @@ const SATArithmeticDrill: React.FC = () => {
             do {
                 b = randInt(5, 30);
                 d = randInt(5, 30);
-                while (d === b) d = randInt(5, 20);
+                while (d === b) d = randInt(5, 30);
                 a = randInt(1, b - 1);
                 c = randInt(1, d - 1);
                 num = a * d + c * b;

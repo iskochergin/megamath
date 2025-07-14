@@ -135,7 +135,7 @@ const AlgebraDrill: React.FC = () => {
                 <title>SAT Algebra I Drill</title>
             </Head>
 
-            <Navbar pageTitle="algebra"/>
+            <Navbar pageTitle="sat algebra"/>
 
             <main className="relative pt-16 flex items-center justify-end min-h-[calc(100vh-4rem)] md:justify-center">
                 <GridPattern
