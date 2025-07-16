@@ -1,3 +1,4 @@
+// pages/index.tsx
 import React from "react";
 import {execSync} from "child_process";
 import Link from "next/link";
@@ -17,6 +18,7 @@ export default function Home({lastUpdated}: { lastUpdated: string }) {
     const satTiles: Tile[] = [
         {href: "/sat-arith", type: "satArith", label: "Arithmetic"},
         {href: "/sat-alg", type: "satAlg", label: "Algebra I"},
+        {href: "/sat-geom", type: "satGeom", label: "Geometry"},
     ];
 
     const fastTiles: Tile[] = [

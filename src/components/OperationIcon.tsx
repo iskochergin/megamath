@@ -1,3 +1,4 @@
+// components/OperationIcon.tsx
 import React from "react";
 
 export type OperationType =
@@ -6,7 +7,8 @@ export type OperationType =
     | "mult"
     | "div"
     | "satArith"
-    | "satAlg";
+    | "satAlg"
+    | "satGeom";
 
 const symbols: Record<OperationType, string> = {
     add: "+",
@@ -15,6 +17,7 @@ const symbols: Record<OperationType, string> = {
     div: "÷",
     satArith: "5%×2?",
     satAlg: "6x+9=0",
+    satGeom: "△",
 };
 
 export default function OperationIcon({
@@ -23,14 +26,12 @@ export default function OperationIcon({
     type: OperationType;
 }) {
     const sizeClass =
-        type === "satArith" || type === "satAlg"
+        type === "satArith" || type === "satAlg" || type === "satGeom"
             ? "text-[38px] sm:text-[50px] md:text-[55px]"
-            : "text-[64px] sm:text-[64px] md:text-[64px]";
+            : "text-[64px]";
 
     return (
-        <span
-            className={`${sizeClass} font-extrabold text-black dark:text-white`}
-        >
+        <span className={`${sizeClass} font-extrabold text-black dark:text-white`}>
             {symbols[type]}
         </span>
     );
