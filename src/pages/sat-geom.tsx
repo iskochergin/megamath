@@ -83,8 +83,8 @@ const SATGeometryDrill: React.FC = () => {
                 svg = svgWrap(
                     <>
                         <rect x="22" y="22" width="76" height="46"/>
-                        <text x="60" y="17" fontSize="7" fontWeight={400} textAnchor="middle">{L}</text>
-                        <text x="20" y="45" fontSize="7" fontWeight={400} textAnchor="end">{W}</text>
+                        <text x="58" y="17" fontSize="7" fontWeight={400} textAnchor="middle">{L}</text>
+                        <text x="17" y="47" fontSize="7" fontWeight={400} textAnchor="end">{W}</text>
                     </>
                 );
             } else if (sub === "tri") {
@@ -98,13 +98,13 @@ const SATGeometryDrill: React.FC = () => {
                         <line x1="25" y1="25" x2="95" y2="70"/>
                         <rect x="25" y="62" width="8" height="8"/>
                         <text x="60" y="78" fontSize="7" fontWeight={400} textAnchor="middle">{b}</text>
-                        <text x="23" y="45" fontSize="7" fontWeight={400} textAnchor="end">{h}</text>
+                        <text x="21" y="50" fontSize="7" fontWeight={400} textAnchor="end">{h}</text>
                     </>
                 );
             } else {
                 const r = ri(3, 10);
                 q = `Circle radius ${r}. Area = ? (π).`;
-                a = `${r * r}π`;
+                a = `${r * r}`;
                 svg = svgWrap(
                     <>
                         <circle cx="60" cy="45" r="30"/>
@@ -134,10 +134,10 @@ const SATGeometryDrill: React.FC = () => {
                     <line x1="20" y1="70" x2="20" y2="20"/>
                     <line x1="20" y1="20" x2="100" y2="70"/>
                     <rect x="20" y="62" width="8" height="8"/>
-                    <text x="60" y="78" fontSize="7" fontWeight={400}
+                    <text x="60" y="80" fontSize="7" fontWeight={400}
                           textAnchor="middle">{hide === "A" ? "x" : A}</text>
-                    <text x="18" y="47" fontSize="7" fontWeight={400} textAnchor="end">{hide === "B" ? "x" : B}</text>
-                    <text x="68" y="33" fontSize="7" fontWeight={400}>{hide === "C" ? "x" : C}</text>
+                    <text x="15" y="47" fontSize="7" fontWeight={400} textAnchor="end">{hide === "B" ? "x" : B}</text>
+                    <text x="60" y="38" fontSize="7" fontWeight={400}>{hide === "C" ? "x" : C}</text>
                 </>
             );
         } else {
@@ -147,9 +147,9 @@ const SATGeometryDrill: React.FC = () => {
             svg = svgWrap(
                 <>
                     <polygon points="20,70 100,70 60,25"/>
-                    <text x="12" y="63" fontSize="7" fontWeight={400}>{A}°</text>
-                    <text x="108" y="63" fontSize="7" fontWeight={400} textAnchor="end">{B}°</text>
-                    <text x="60" y="21" fontSize="6" fontWeight={300} textAnchor="middle">x°</text>
+                    <text x="30" y="66" fontSize="7" fontWeight={400}>{A}°</text>
+                    <text x="90" y="66" fontSize="7" fontWeight={400} textAnchor="end">{B}°</text>
+                    <text x="60" y="36" fontSize="8" fontWeight={300} textAnchor="middle">x°</text>
                 </>
             );
         }
