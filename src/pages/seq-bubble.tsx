@@ -28,23 +28,23 @@ const ri = (a: number, b: number) =>
 const choice = <T, >(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 const MAX_LEN = 6;
 
-/* pastel‑orange palette (unchanging) */
-const OR_BG = "hsl(30,100%,85%)"; /* inner fill – dark enough to see numbers */
+/* pastel-orange palette (unchanging) */
+const OR_BG = "hsla(30,100%,80%,0.73)";      /* slightly darker than before   */
 const OR_BORDER = "hsl(30,100%,55%)";
-// const OR_TEXT = "hsl(25,90%,30%)";
-const OR_TEXT = "hsl(26,88%,37%)";
+const OR_TEXT = "hsl(26,86%,36%)";
 
+/* sequence generator ------------------------------------------------- */
 const makeSequence = (difficulty = 1): GeneratedSeq => {
     const kinds: SeqKind[] =
         difficulty < 4
             ? ["arithmetic", "geometric", "fibo", "alt"]
             : ["arithmetic", "geometric", "fibo", "alt", "mixed", "quadratic"];
+
     if (difficulty >= 8) kinds.push("square", "pow2");
 
     const kind = choice(kinds);
     const seq: number[] = [];
     let hint = "";
-
     const safe = (v: number) => {
         if (Math.abs(v) > 20_000) throw new Error("overflow");
         seq.push(v);
@@ -89,10 +89,10 @@ const makeSequence = (difficulty = 1): GeneratedSeq => {
                 break;
             }
             case "mixed": {
-                const start = ri(2, 10),
+                const s = ri(2, 10),
                     d = ri(1, 3 + difficulty),
                     r = choice([2, 3, 4]);
-                safe(start);
+                safe(s);
                 for (let i = 1; i < MAX_LEN / 2; i++) safe(seq[i - 1] + d);
                 for (let i = MAX_LEN / 2; i < MAX_LEN; i++) safe(seq[i - 1] * r);
                 hint = `Add ${d}, then ×${r}`;
@@ -115,7 +115,7 @@ const makeSequence = (difficulty = 1): GeneratedSeq => {
             case "pow2": {
                 const k = ri(1, 3);
                 for (let i = 0; i < MAX_LEN; i++) safe(k * 2 ** i);
-                hint = "Powers of two";
+                hint = "Powers of 2";
                 break;
             }
         }
@@ -123,8 +123,8 @@ const makeSequence = (difficulty = 1): GeneratedSeq => {
         return regen();
     }
 
-    const final = seq.at(-1)!;
-    const shown = seq.slice(0, -1) as (number | null)[];
+    const finalAnswer = seq.at(-1)!;
+    const shown: (number | null)[] = seq.slice(0, -1);
     let hintIndex: number | null = null;
 
     if (
@@ -137,15 +137,15 @@ const makeSequence = (difficulty = 1): GeneratedSeq => {
         shown[idx] = null;
         hintIndex = idx;
     }
-    return {shown, finalAnswer: final, kind, hintIndex, hint};
+    return {shown, finalAnswer, kind, hintIndex, hint};
 };
 
-/* component -------------------------------------------------------- */
+/* component --------------------------------------------------------- */
 const SeqBubbleDrill: React.FC = () => {
     const [data, setData] = useState<GeneratedSeq | null>(null);
     const [streak, setStreak] = useState(0);
     const [bestStreak, setBestStreak] = useState(0);
-    const level = Math.min(10, Math.floor(streak / 2));
+    const level = Math.min(10, 1 + Math.floor(streak / 2));
 
     const [input, setInput] = useState("");
     const [feedback, setFeedback] = useState("");
@@ -162,7 +162,7 @@ const SeqBubbleDrill: React.FC = () => {
     const cardRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    /* first mount */
+    /* mount ---------------------------------------------------------------- */
     useEffect(() => {
         if (typeof window !== "undefined") {
             setBestStreak(+localStorage.getItem("seq_best")! || 0);
@@ -172,13 +172,12 @@ const SeqBubbleDrill: React.FC = () => {
 
     useEffect(() => inputRef.current?.focus(), [data]);
 
-    /* simple timer */
+    /* timers ---------------------------------------------------------------- */
     useEffect(() => {
         const id = setInterval(() => setElapsed((t) => t + 0.12), 120);
         return () => clearInterval(id);
     }, []);
 
-    /* auto next timer */
     useEffect(() => {
         if (!wait) return;
         if (cd > 0) {
@@ -188,6 +187,7 @@ const SeqBubbleDrill: React.FC = () => {
         nextSeq();
     }, [wait, cd]);
 
+    /* helpers --------------------------------------------------------------- */
     const nextSeq = () => {
         const el = cardRef.current;
         if (!el) return;
@@ -225,7 +225,7 @@ const SeqBubbleDrill: React.FC = () => {
         const val = input.trim() === "" ? NaN : +input.trim();
         const ok = val === data.finalAnswer;
         if (ok) {
-            setFeedback("✔ Correct");
+            setFeedback("✔ Correct");
             const ns = streak + 1;
             setStreak(ns);
             if (ns > bestStreak) {
@@ -234,7 +234,7 @@ const SeqBubbleDrill: React.FC = () => {
             }
             finishRound(true);
         } else if (attempts === 0) {
-            setFeedback("✖ Try again");
+            setFeedback("✖ Try again");
             setAttempts(1);
         } else {
             setFeedback(`Answer: ${data.finalAnswer}`);
@@ -243,16 +243,21 @@ const SeqBubbleDrill: React.FC = () => {
         }
     };
 
-    /* bubble style helper */
-    const bubbleCss = (delay: number, dashed?: boolean) => ({
+    /* bubble style helper (individual glow) -------------------------------- */
+    const glow = level > 1 ? `${(level - 1) * 2 + 4}px` : "0px";
+    const bubbleCss = (delay: number, dashed?: boolean): React.CSSProperties => ({
         animationDelay: `${delay}s`,
         background: dashed ? "transparent" : OR_BG,
         border: `4px ${dashed ? "dashed" : "solid"} ${OR_BORDER}`,
         color: OR_TEXT,
+        filter:
+            glow === "0px"
+                ? "none"
+                : `drop-shadow(0 0 ${glow} rgba(255,80,0,0.55))`,
     });
 
-    /* fire glow size */
-    const glow = level > 0 ? `${(level - 1) * 2 + 4}px` : "0px";
+    /* mobile key helper */
+    const addDigit = (d: string) => setInput((v) => v + d);
 
     if (!data) return null;
 
@@ -273,18 +278,17 @@ const SeqBubbleDrill: React.FC = () => {
 
                 <div
                     ref={cardRef}
-                    className="fadeIn relative z-10 w-11/12 sm:w-10/12 md:w-2/3 lg:w-1/2 xl:w-5/12 max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-[rgb(var(--primary))] dark:bg-[rgb(var(--secondary))] text-[rgb(var(--foreground))] rounded-2xl shadow-background backdrop-blur-md p-4 sm:p-6 md:p-8 transition"
+                    className="fadeIn relative sm:mt-5 mt-5 z-10 w-11/12 sm:w-11/12 md:w-8/12 lg:w-7/12 xl:w-1/2 max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-[rgb(var(--primary))] dark:bg-[rgb(var(--secondary))] text-[rgb(var(--foreground))] rounded-2xl shadow-background backdrop-blur-md p-5 sm:p-8 md:py-12 md:px-10 transition-all duration-300 ease-in-out"
                 >
-                    {/* info row */}
-                    <div className="flex justify-between text-xs sm:text-sm mb-3">
+                    <div className="flex justify-between text-xs sm:text-sm mb-4">
                         <span>{elapsed.toFixed(1)} s</span>
                         <span>
-              Streak {streak} (best {bestStreak}) · Lv {level}
+              Streak {streak} (best {bestStreak}) · Lv {level}
             </span>
                     </div>
 
-                    {/* hint row */}
-                    <div className="flex items-center gap-2 mb-4">
+                    {/* hint row ----------------------------------------------------------- */}
+                    <div className="flex items-center gap-2 mb-6">
                         <button onClick={() => setShowHint((h) => !h)} className="pill">
                             Hint
                         </button>
@@ -301,17 +305,12 @@ const SeqBubbleDrill: React.FC = () => {
                         </div>
                     </div>
 
-                    <h2 className="text-center text-2xl sm:text-3xl font-extrabold mb-6">
+                    <h2 className="text-center text-2xl sm:text-3xl font-extrabold sm:gap-4 mb-4 sm:mb-8 md:mb-8 lg:mb-8 xl:mb-8">
                         Complete the sequence
                     </h2>
 
-                    {/* bubbles */}
-                    <div
-                        className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-6"
-                        style={{
-                            filter: glow === "0px" ? "none" : `drop-shadow(0 0 ${glow} rgba(255,80,0,0.55))`,
-                        }}
-                    >
+                    {/* bubbles ------------------------------------------------------------ */}
+                    <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-4 sm:mb-8 md:mb-8 lg:mb-8 xl:mb-8">
                         {data.shown.map((v, i) => (
                             <div
                                 key={i}
@@ -345,9 +344,9 @@ const SeqBubbleDrill: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* feedback */}
+                    {/* feedback ----------------------------------------------------------- */}
                     {feedback && (
-                        <div className="text-center mb-5 min-h-[1.5rem]">
+                        <div className="text-center mb-3 sm:mb-6 md:mb-6 lg:mb-6 xl:mb-6 min-h-[1.5rem]">
                             <p
                                 className={
                                     feedback.startsWith("✔")
@@ -360,18 +359,18 @@ const SeqBubbleDrill: React.FC = () => {
                         </div>
                     )}
 
-                    {/* control */}
-                    <div className="flex justify-center">
+                    {/* desktop control ---------------------------------------------------- */}
+                    <div className="hidden md:flex justify-center">
                         <button onClick={check} className="pill">
                             {wait ? "Next" : "Check"}
                         </button>
                     </div>
 
-                    {/* keypad mobile */}
-                    <div className="md:hidden mt-6">
+                    {/* mobile keypad ------------------------------------------------------ */}
+                    <div className="md:hidden w-full">
                         <div className="grid grid-cols-3 gap-2">
                             {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
-                                <button key={d} onClick={() => setInput((v) => v + d)} className="key">
+                                <button key={d} onClick={() => addDigit(d)} className="key">
                                     {d}
                                 </button>
                             ))}
@@ -383,51 +382,46 @@ const SeqBubbleDrill: React.FC = () => {
                             >
                                 Del
                             </button>
-                            <button
-                                onClick={() =>
-                                    setInput((v) => (v.startsWith("-") ? v.slice(1) : "-" + v))
-                                }
-                                className="key"
-                            >
-                                ±
+                            <button onClick={() => addDigit("0")} className="key">
+                                0
                             </button>
-                            <button onClick={check} className="key enter">
-                                OK
+                            <button
+                                onClick={check}
+                                className="px-4 py-2 rounded-lg bg-black dark:bg-white text-white dark:text-black font-semibold active:scale-95 transition"
+                            >
+                                {wait ? "Next" : "Check"}
                             </button>
                         </div>
                     </div>
                 </div>
             </main>
 
-            {/* css‑in‑js --------------------------------------------------- */}
             <style jsx>{`
-                /* pills & keys */
                 .pill {
-                    padding: 0.4rem 0.9rem;
-                    border-radius: 0.4rem;
-                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.06);
+                    padding: 0.45rem 1rem;
+                    border-radius: 0.45rem;
+                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.07);
                     color: rgb(var(--foreground));
                     font-weight: 600;
-                    font-size: 0.875rem;
                     transition: background 0.2s;
                 }
 
                 .pill:hover {
-                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.15);
+                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.16);
                 }
 
                 .key {
-                    padding: 0.55rem 0;
+                    padding: 0.6rem 0;
                     border-radius: 0.38rem;
-                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.06);
-                    border: 1px solid rgba(var(--foreground-rgb, 0, 0, 0), 0.25);
+                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.07);
+                    border: 1px solid rgba(var(--foreground-rgb), 0.15);
                     font-size: 1.1rem;
                     font-weight: 600;
                     color: rgb(var(--foreground));
                 }
 
                 .key.enter {
-                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.15);
+                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.16);
                     color: rgb(var(--background));
                 }
 
@@ -482,7 +476,7 @@ const SeqBubbleDrill: React.FC = () => {
                     }
                 }
 
-                /* typing */
+                /* typing for hint */
                 @keyframes typing {
                     from {
                         clip-path: inset(0 100% 0 0);
