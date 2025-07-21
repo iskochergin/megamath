@@ -1,11 +1,19 @@
-/* ── pages/seq-bubble.tsx ────────────────────────────────────────── */
+/* pages/seq-bubble.tsx ------------------------------------------------ */
 import React, {useState, useEffect, useRef} from "react";
 import Head from "next/head";
 import Navbar from "../components/Navbar";
 import {GridPattern} from "@/components/GridPattern";
 
-/* helpers */
-type SeqKind = "arithmetic" | "geometric" | "fibo" | "alt" | "mixed";
+/* helpers ------------------------------------------------------------ */
+type SeqKind =
+    | "arithmetic"
+    | "geometric"
+    | "fibo"
+    | "alt"
+    | "mixed"
+    | "quadratic"
+    | "square"
+    | "pow2";
 
 interface GeneratedSeq {
     shown: (number | null)[];
@@ -20,94 +28,130 @@ const ri = (a: number, b: number) =>
 const choice = <T, >(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 const MAX_LEN = 6;
 
+/* pastel‑orange palette (unchanging) */
+const OR_BG = "hsl(30,100%,85%)"; /* inner fill – dark enough to see numbers */
+const OR_BORDER = "hsl(30,100%,55%)";
+// const OR_TEXT = "hsl(25,90%,30%)";
+const OR_TEXT = "hsl(26,88%,37%)";
+
 const makeSequence = (difficulty = 1): GeneratedSeq => {
-    const kind: SeqKind = choice([
-        "arithmetic",
-        "geometric",
-        "fibo",
-        "alt",
-        "mixed",
-    ]);
+    const kinds: SeqKind[] =
+        difficulty < 4
+            ? ["arithmetic", "geometric", "fibo", "alt"]
+            : ["arithmetic", "geometric", "fibo", "alt", "mixed", "quadratic"];
+    if (difficulty >= 8) kinds.push("square", "pow2");
+
+    const kind = choice(kinds);
     const seq: number[] = [];
     let hint = "";
 
-    const safePush = (v: number) => {
-        if (Math.abs(v) > 12_000) throw new Error("too large");
+    const safe = (v: number) => {
+        if (Math.abs(v) > 20_000) throw new Error("overflow");
         seq.push(v);
     };
     const regen = () => makeSequence(difficulty);
 
     try {
-        if (kind === "arithmetic") {
-            const start = ri(-12, 18);
-            const d = choice([ri(1, 5 + difficulty), -ri(1, 5 + difficulty)]);
-            for (let i = 0; i < MAX_LEN; i++) safePush(start + i * d);
-            hint = `Add ${d > 0 ? "+" : ""}${d} each time`;
-        } else if (kind === "geometric") {
-            const start = choice([ri(1, 6), -ri(1, 6)]);
-            const r = choice([2, 3, -2, difficulty > 3 ? 4 : 2]);
-            safePush(start);
-            for (let i = 1; i < MAX_LEN; i++) safePush(seq[i - 1] * r);
-            hint = `Multiply by ${r}`;
-        } else if (kind === "fibo") {
-            safePush(ri(1, 9));
-            safePush(ri(1, 9));
-            while (seq.length < MAX_LEN) safePush(seq.at(-1)! + seq.at(-2)!);
-            hint = "Term = sum of two previous";
-        } else if (kind === "alt") {
-            const a1 = ri(1, 20),
-                d1 = choice([ri(1, 5 + difficulty), -ri(1, 5 + difficulty)]);
-            const a2 = ri(1, 20),
-                d2 = choice([ri(1, 5 + difficulty), -ri(1, 5 + difficulty)]);
-            for (let i = 0; i < MAX_LEN; i++)
-                safePush(i % 2 === 0 ? a1 + (i / 2) * d1 : a2 + ((i - 1) / 2) * d2);
-            hint = "Two interleaved arithmetic rows";
-        } else {
-            const start = ri(2, 10),
-                d = ri(1, 4 + difficulty),
-                r = choice([2, 3, 4]);
-            safePush(start);
-            for (let i = 1; i < MAX_LEN / 2; i++) safePush(seq[i - 1] + d);
-            for (let i = MAX_LEN / 2; i < MAX_LEN; i++) safePush(seq[i - 1] * r);
-            hint = `First +${d}, then ×${r}`;
+        switch (kind) {
+            case "arithmetic": {
+                const start = ri(-12, 18);
+                const d = choice([ri(1, 4 + difficulty), -ri(1, 4 + difficulty)]);
+                for (let i = 0; i < MAX_LEN; i++) safe(start + i * d);
+                hint = `Add ${d > 0 ? "+" : ""}${d}`;
+                break;
+            }
+            case "geometric": {
+                const start = choice([ri(1, 6), -ri(1, 6)]);
+                const rPool = [2, 3];
+                if (difficulty >= 4) rPool.push(-2);
+                if (difficulty >= 7) rPool.push(4);
+                const r = choice(rPool);
+                safe(start);
+                for (let i = 1; i < MAX_LEN; i++) safe(seq[i - 1] * r);
+                hint = `Multiply by ${r}`;
+                break;
+            }
+            case "fibo": {
+                safe(ri(1, 9));
+                safe(ri(1, 9));
+                while (seq.length < MAX_LEN) safe(seq.at(-1)! + seq.at(-2)!);
+                hint = "Next = sum of two previous";
+                break;
+            }
+            case "alt": {
+                const a1 = ri(1, 15),
+                    d1 = choice([ri(1, 4 + difficulty), -ri(1, 4 + difficulty)]);
+                const a2 = ri(1, 15),
+                    d2 = choice([ri(1, 4 + difficulty), -ri(1, 4 + difficulty)]);
+                for (let i = 0; i < MAX_LEN; i++)
+                    safe(i % 2 === 0 ? a1 + (i / 2) * d1 : a2 + ((i - 1) / 2) * d2);
+                hint = "Two interleaved arithmetic rows";
+                break;
+            }
+            case "mixed": {
+                const start = ri(2, 10),
+                    d = ri(1, 3 + difficulty),
+                    r = choice([2, 3, 4]);
+                safe(start);
+                for (let i = 1; i < MAX_LEN / 2; i++) safe(seq[i - 1] + d);
+                for (let i = MAX_LEN / 2; i < MAX_LEN; i++) safe(seq[i - 1] * r);
+                hint = `Add ${d}, then ×${r}`;
+                break;
+            }
+            case "quadratic": {
+                const a = ri(1, 3),
+                    b = ri(0, 4),
+                    c = ri(-3, 3);
+                for (let n = 1; n <= MAX_LEN; n++) safe(a * n * n + b * n + c);
+                hint = "Quadratic pattern";
+                break;
+            }
+            case "square": {
+                const off = ri(0, 3);
+                for (let n = 1; n <= MAX_LEN; n++) safe((n + off) ** 2);
+                hint = "Perfect squares";
+                break;
+            }
+            case "pow2": {
+                const k = ri(1, 3);
+                for (let i = 0; i < MAX_LEN; i++) safe(k * 2 ** i);
+                hint = "Powers of two";
+                break;
+            }
         }
     } catch {
         return regen();
     }
 
-    const finalAnswer = seq.at(-1)!;
-    const shown: (number | null)[] = seq.slice(0, -1);
+    const final = seq.at(-1)!;
+    const shown = seq.slice(0, -1) as (number | null)[];
     let hintIndex: number | null = null;
 
     if (
-        kind !== "alt" && // never hide inside overlay sequence
+        kind !== "alt" &&
         shown.length >= 5 &&
-        Math.random() < 0.35
+        Math.random() < 0.35 &&
+        difficulty < 9
     ) {
-        const idx = ri(2, shown.length - 2); // keep first two visible
+        const idx = ri(2, shown.length - 2);
         shown[idx] = null;
         hintIndex = idx;
     }
-
-    return {shown, finalAnswer, kind, hintIndex, hint};
+    return {shown, finalAnswer: final, kind, hintIndex, hint};
 };
 
-/* component */
+/* component -------------------------------------------------------- */
 const SeqBubbleDrill: React.FC = () => {
     const [data, setData] = useState<GeneratedSeq | null>(null);
-    const [level, setLevel] = useState(1);
-    const [flash, setFlash] = useState(false);
+    const [streak, setStreak] = useState(0);
+    const [bestStreak, setBestStreak] = useState(0);
+    const level = Math.min(10, Math.floor(streak / 2));
 
     const [input, setInput] = useState("");
     const [feedback, setFeedback] = useState("");
     const [attempts, setAttempts] = useState(0);
 
-    const [streak, setStreak] = useState(0);
-    const [bestStreak, setBestStreak] = useState(0);
-
-    const [start, setStart] = useState(0);
     const [elapsed, setElapsed] = useState(0);
-
     const [showHint, setShowHint] = useState(false);
     const [revealed, setRevealed] = useState<"none" | "correct" | "wrong">(
         "none"
@@ -118,28 +162,23 @@ const SeqBubbleDrill: React.FC = () => {
     const cardRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    /* hydrate / first load */
+    /* first mount */
     useEffect(() => {
         if (typeof window !== "undefined") {
             setBestStreak(+localStorage.getItem("seq_best")! || 0);
         }
-        const first = makeSequence();
-        setData(first);
-        setStart(Date.now());
+        setData(makeSequence());
     }, []);
 
-    useEffect(() => {
-        if (data) inputRef.current?.focus();
-    }, [data]);
+    useEffect(() => inputRef.current?.focus(), [data]);
 
-    /* timer */
+    /* simple timer */
     useEffect(() => {
-        if (!start) return;
-        const id = setInterval(() => setElapsed((Date.now() - start) / 1000), 120);
+        const id = setInterval(() => setElapsed((t) => t + 0.12), 120);
         return () => clearInterval(id);
-    }, [start]);
+    }, []);
 
-    /* auto next */
+    /* auto next timer */
     useEffect(() => {
         if (!wait) return;
         if (cd > 0) {
@@ -157,20 +196,15 @@ const SeqBubbleDrill: React.FC = () => {
         setTimeout(() => {
             el.classList.remove("fadeOut");
             void el.offsetWidth;
-            const harder = Math.min(8, 1 + Math.floor(streak / 4));
-            if (harder > level) {
-                setFlash(true);
-                setTimeout(() => setFlash(false), 900);
-            }
-            setLevel(harder);
-            setData(makeSequence(harder));
+            setData(makeSequence(level));
             setInput("");
             setFeedback("");
             setAttempts(0);
             setShowHint(false);
             setRevealed("none");
             setWait(false);
-            setStart(Date.now());
+            setCd(0);
+            setElapsed(0);
             el.classList.add("fadeIn");
             inputRef.current?.focus();
         }, 320);
@@ -189,19 +223,18 @@ const SeqBubbleDrill: React.FC = () => {
             return;
         }
         const val = input.trim() === "" ? NaN : +input.trim();
-        const correct = val === data.finalAnswer;
-        if (correct) {
-            setFeedback("✔ Correct");
-            const newStreak = streak + 1;
-            setStreak(newStreak);
-            if (newStreak > bestStreak) {
-                setBestStreak(newStreak);
-                if (typeof window !== "undefined")
-                    localStorage.setItem("seq_best", String(newStreak));
+        const ok = val === data.finalAnswer;
+        if (ok) {
+            setFeedback("✔ Correct");
+            const ns = streak + 1;
+            setStreak(ns);
+            if (ns > bestStreak) {
+                setBestStreak(ns);
+                localStorage.setItem("seq_best", String(ns));
             }
             finishRound(true);
         } else if (attempts === 0) {
-            setFeedback("✖ Try again");
+            setFeedback("✖ Try again");
             setAttempts(1);
         } else {
             setFeedback(`Answer: ${data.finalAnswer}`);
@@ -210,41 +243,18 @@ const SeqBubbleDrill: React.FC = () => {
         }
     };
 
-    const answerBubbleClass =
-        revealed === "none"
-            ? "border-4 border-dashed border-blue-300"
-            : revealed === "correct"
-                ? "bg-green-200/60 border-green-400"
-                : "bg-rose-200/60 border-rose-400";
+    /* bubble style helper */
+    const bubbleCss = (delay: number, dashed?: boolean) => ({
+        animationDelay: `${delay}s`,
+        background: dashed ? "transparent" : OR_BG,
+        border: `4px ${dashed ? "dashed" : "solid"} ${OR_BORDER}`,
+        color: OR_TEXT,
+    });
 
-    const answerNode =
-        revealed === "none" ? (
-            <input
-                ref={inputRef}
-                type="text"
-                inputMode="numeric"
-                value={input}
-                onChange={(e) => setInput(e.target.value.replace(/[^0-9\-]/g, ""))}
-                onKeyDown={(e) => e.key === "Enter" && check()}
-                className="w-full h-full bg-transparent text-center font-bold text-lg focus:outline-none"
-            />
-        ) : (
-            <span className="font-bold text-lg">{data?.finalAnswer}</span>
-        );
-
-    const addDigit = (d: string) => setInput((v) => v + d);
+    /* fire glow size */
+    const glow = level > 0 ? `${(level - 1) * 2 + 4}px` : "0px";
 
     if (!data) return null;
-
-    /* card css */
-    const cardClass = `
-      fadeIn relative z-10 w-11/12 sm:w-10/12 md:w-2/3 lg:w-1/2 xl:w-5/12
-      max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl
-      bg-[rgb(var(--primary))] dark:bg-[rgb(var(--secondary))]
-      text-[rgb(var(--foreground))] rounded-2xl shadow-background backdrop-blur-md
-      p-4 sm:p-6 md:p-8 transition
-      ${flash ? "ring-4 ring-orange-300/60" : ""}
-  `;
 
     return (
         <>
@@ -252,6 +262,7 @@ const SeqBubbleDrill: React.FC = () => {
                 <title>Sequence Bubble Drill</title>
             </Head>
             <Navbar pageTitle="sequences"/>
+
             <main className="relative pt-16 flex justify-center items-center min-h-[calc(100vh-4rem)]">
                 <GridPattern
                     width={40}
@@ -259,21 +270,22 @@ const SeqBubbleDrill: React.FC = () => {
                     strokeDasharray={0}
                     className="absolute inset-0"
                 />
-                <div ref={cardRef} className={cardClass}>
-                    {/* header */}
+
+                <div
+                    ref={cardRef}
+                    className="fadeIn relative z-10 w-11/12 sm:w-10/12 md:w-2/3 lg:w-1/2 xl:w-5/12 max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-[rgb(var(--primary))] dark:bg-[rgb(var(--secondary))] text-[rgb(var(--foreground))] rounded-2xl shadow-background backdrop-blur-md p-4 sm:p-6 md:p-8 transition"
+                >
+                    {/* info row */}
                     <div className="flex justify-between text-xs sm:text-sm mb-3">
-                        <span>Time {elapsed.toFixed(1)} s</span>
+                        <span>{elapsed.toFixed(1)} s</span>
                         <span>
-              Streak {streak} (best {bestStreak}) · Lv {level}
+              Streak {streak} (best {bestStreak}) · Lv {level}
             </span>
                     </div>
 
                     {/* hint row */}
                     <div className="flex items-center gap-2 mb-4">
-                        <button
-                            onClick={() => setShowHint(h => !h)}
-                            className="hint-btn"
-                        >
+                        <button onClick={() => setShowHint((h) => !h)} className="pill">
                             Hint
                         </button>
                         <div
@@ -289,68 +301,68 @@ const SeqBubbleDrill: React.FC = () => {
                         </div>
                     </div>
 
-
-                    {/* title */}
                     <h2 className="text-center text-2xl sm:text-3xl font-extrabold mb-6">
                         Complete the sequence
                     </h2>
 
                     {/* bubbles */}
                     <div
-                        className={
-                            "flex flex-wrap justify-center gap-3 sm:gap-4 mb-6 " +
-                            (flash ? "flame" : "")
-                        }
+                        className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-6"
+                        style={{
+                            filter: glow === "0px" ? "none" : `drop-shadow(0 0 ${glow} rgba(255,80,0,0.55))`,
+                        }}
                     >
                         {data.shown.map((v, i) => (
                             <div
                                 key={i}
-                                className={
-                                    "w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center font-bold text-lg animation-pop " +
-                                    (v === null
-                                        ? "border-2 border-dashed border-blue-300 text-blue-600"
-                                        : "bg-blue-100/60 border border-blue-300 text-blue-800")
-                                }
-                                style={{animationDelay: `${i * 0.1}s`}}
+                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center font-bold text-lg animation-pop"
+                                style={bubbleCss(i * 0.1, v === null)}
                             >
                                 {v === null ? "?" : v}
                             </div>
                         ))}
 
+                        {/* answer bubble */}
                         <div
-                            className={
-                                "w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center animation-pop " +
-                                answerBubbleClass
-                            }
-                            style={{animationDelay: `${data.shown.length * 0.1}s`}}
+                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center animation-pop"
+                            style={bubbleCss(data.shown.length * 0.1, revealed === "none")}
                         >
-                            {answerNode}
+                            {revealed === "none" ? (
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={input}
+                                    onChange={(e) =>
+                                        setInput(e.target.value.replace(/[^0-9\-]/g, ""))
+                                    }
+                                    onKeyDown={(e) => e.key === "Enter" && check()}
+                                    className="w-full h-full bg-transparent text-center font-bold text-lg focus:outline-none"
+                                />
+                            ) : (
+                                <span className="font-bold text-lg">{data.finalAnswer}</span>
+                            )}
                         </div>
                     </div>
 
                     {/* feedback */}
-                    <div className="min-h-[1.5rem] text-center mb-5">
-                        {feedback && (
+                    {feedback && (
+                        <div className="text-center mb-5 min-h-[1.5rem]">
                             <p
                                 className={
                                     feedback.startsWith("✔")
-                                        ? "text-green-700 font-semibold"
-                                        : feedback.startsWith("Answer")
-                                            ? "text-rose-700 font-semibold"
-                                            : "text-rose-700 font-semibold"
+                                        ? "text-green-700 font-semibold dark:text-green-400"
+                                        : "text-rose-700 font-semibold dark:text-rose-400"
                                 }
                             >
                                 {feedback}
                             </p>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
-                    {/* controls */}
+                    {/* control */}
                     <div className="flex justify-center">
-                        <button
-                            onClick={check}
-                            className="px-6 py-2 rounded-lg bg-blue-500/80 hover:bg-blue-500 text-white font-semibold text-sm active:scale-95 transition"
-                        >
+                        <button onClick={check} className="pill">
                             {wait ? "Next" : "Check"}
                         </button>
                     </div>
@@ -359,11 +371,7 @@ const SeqBubbleDrill: React.FC = () => {
                     <div className="md:hidden mt-6">
                         <div className="grid grid-cols-3 gap-2">
                             {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
-                                <button
-                                    key={d}
-                                    onClick={() => addDigit(d)}
-                                    className="py-2 rounded-lg bg-blue-100/50 border border-blue-300 font-semibold text-lg active:scale-95"
-                                >
+                                <button key={d} onClick={() => setInput((v) => v + d)} className="key">
                                     {d}
                                 </button>
                             ))}
@@ -371,7 +379,7 @@ const SeqBubbleDrill: React.FC = () => {
                         <div className="grid grid-cols-3 gap-2 mt-2">
                             <button
                                 onClick={() => setInput((v) => v.slice(0, -1))}
-                                className="py-2 rounded-lg bg-blue-100/50 border border-blue-300 font-semibold text-lg active:scale-95"
+                                className="key"
                             >
                                 Del
                             </button>
@@ -379,14 +387,11 @@ const SeqBubbleDrill: React.FC = () => {
                                 onClick={() =>
                                     setInput((v) => (v.startsWith("-") ? v.slice(1) : "-" + v))
                                 }
-                                className="py-2 rounded-lg bg-blue-100/50 border border-blue-300 font-semibold text-lg active:scale-95"
+                                className="key"
                             >
                                 ±
                             </button>
-                            <button
-                                onClick={check}
-                                className="py-2 rounded-lg bg-blue-500/80 text-white font-semibold text-lg active:scale-95"
-                            >
+                            <button onClick={check} className="key enter">
                                 OK
                             </button>
                         </div>
@@ -394,11 +399,41 @@ const SeqBubbleDrill: React.FC = () => {
                 </div>
             </main>
 
-            {/* css in js */}
+            {/* css‑in‑js --------------------------------------------------- */}
             <style jsx>{`
-                /* pop‑in */
+                /* pills & keys */
+                .pill {
+                    padding: 0.4rem 0.9rem;
+                    border-radius: 0.4rem;
+                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.06);
+                    color: rgb(var(--foreground));
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                    transition: background 0.2s;
+                }
+
+                .pill:hover {
+                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.15);
+                }
+
+                .key {
+                    padding: 0.55rem 0;
+                    border-radius: 0.38rem;
+                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.06);
+                    border: 1px solid rgba(var(--foreground-rgb, 0, 0, 0), 0.25);
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: rgb(var(--foreground));
+                }
+
+                .key.enter {
+                    background: rgba(var(--foreground-rgb, 0, 0, 0), 0.15);
+                    color: rgb(var(--background));
+                }
+
+                /* pop */
                 .animation-pop {
-                    animation: pop 0.5s cubic-bezier(0.55, 1.4, 0.4, 1) both;
+                    animation: pop 0.47s cubic-bezier(0.55, 1.4, 0.4, 1) both;
                 }
 
                 @keyframes pop {
@@ -426,47 +461,28 @@ const SeqBubbleDrill: React.FC = () => {
                 }
 
                 @keyframes cardIn {
-                    0% {
+                    from {
                         transform: translateY(18px) scale(0.96);
                         opacity: 0;
                     }
-                    100% {
+                    to {
                         transform: translateY(0) scale(1);
                         opacity: 1;
                     }
                 }
 
                 @keyframes cardOut {
-                    0% {
+                    from {
                         transform: translateY(0) scale(1);
                         opacity: 1;
                     }
-                    100% {
+                    to {
                         transform: translateY(-14px) scale(0.94);
                         opacity: 0;
                     }
                 }
 
-                /* hint animations */
-                .hint-btn {
-                    display: inline-block;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.25rem;
-                    background-color: rgba(var(--foreground-rgb), 0.05); /* always‑visible tint */
-                    color: rgb(var(--foreground));
-                    font-size: 0.875rem;
-                    font-weight: 600;
-                    transition: background-color 0.2s;
-                }
-
-                .hint-btn:hover {
-                    background-color: rgba(var(--foreground-rgb), 0.15); /* brighter on hover */
-                }
-
-                .hint-btn.active {
-                    color: rgb(var(--foreground));
-                }
-
+                /* typing */
                 @keyframes typing {
                     from {
                         clip-path: inset(0 100% 0 0);
@@ -477,37 +493,7 @@ const SeqBubbleDrill: React.FC = () => {
                 }
 
                 .animate-typing {
-                    animation: typing 1.4s steps(40, end) forwards;
-                }
-
-                /* level‑up flame */
-                .flame > div {
-                    position: relative;
-                }
-
-                .flame > div::after {
-                    content: "";
-                    position: absolute;
-                    inset: 0;
-                    border-radius: 9999px;
-                    border: 3px solid rgba(255, 138, 0, 0.45);
-                    animation: blaze 0.9s ease-out forwards;
-                    pointer-events: none;
-                }
-
-                @keyframes blaze {
-                    0% {
-                        transform: scale(0.8);
-                        opacity: 0;
-                    }
-                    50% {
-                        transform: scale(1.25);
-                        opacity: 1;
-                    }
-                    100% {
-                        transform: scale(1);
-                        opacity: 0;
-                    }
+                    animation: typing 1.3s steps(38, end) forwards;
                 }
             `}</style>
         </>
