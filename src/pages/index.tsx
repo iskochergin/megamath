@@ -15,8 +15,8 @@ type Tile = {
 
 export default function Home({lastUpdated}: { lastUpdated: string }) {
     const teaserTiles: Tile[] = [
-        {href: "/seq-bubble", type: "seqBubble", label: "Sequences"},
-        {href: "/digit-rebus", type: "digitRebus", label: "Rebuses"},
+        {href: "/seq", type: "seqBubble", label: "Sequences"},
+        {href: "/rebus", type: "digitRebus", label: "Rebuses"},
     ];
 
     const satTiles: Tile[] = [

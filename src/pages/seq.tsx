@@ -1,10 +1,8 @@
-/* pages/seq.tsx ------------------------------------------------ */
 import React, {useState, useEffect, useRef} from "react";
 import Head from "next/head";
 import Navbar from "../components/Navbar";
 import {GridPattern} from "@/components/GridPattern";
 
-/* helpers ------------------------------------------------------------ */
 type SeqKind =
     | "arithmetic"
     | "geometric"
@@ -29,11 +27,10 @@ const choice = <T, >(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 const MAX_LEN = 6;
 
 /* pastel-orange palette (unchanging) */
-const OR_BG = "hsl(28,100%,84%)";      /* slightly darker than before   */
+const OR_BG = "hsl(28,100%,84%)";
 const OR_BORDER = "hsl(30,100%,55%)";
 const OR_TEXT = "hsl(26,86%,36%)";
 
-/* sequence generator ------------------------------------------------- */
 const makeSequence = (difficulty = 1): GeneratedSeq => {
     const kinds: SeqKind[] =
         difficulty < 4
@@ -140,7 +137,6 @@ const makeSequence = (difficulty = 1): GeneratedSeq => {
     return {shown, finalAnswer, kind, hintIndex, hint};
 };
 
-/* component --------------------------------------------------------- */
 const SeqBubbleDrill: React.FC = () => {
     const [data, setData] = useState<GeneratedSeq | null>(null);
     const [streak, setStreak] = useState(0);
