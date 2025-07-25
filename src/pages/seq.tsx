@@ -1,4 +1,4 @@
-/* pages/seq-bubble.tsx ------------------------------------------------ */
+/* pages/seq.tsx ------------------------------------------------ */
 import React, {useState, useEffect, useRef} from "react";
 import Head from "next/head";
 import Navbar from "../components/Navbar";
@@ -29,7 +29,7 @@ const choice = <T, >(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 const MAX_LEN = 6;
 
 /* pastel-orange palette (unchanging) */
-const OR_BG = "hsla(30,100%,80%,0.73)";      /* slightly darker than before   */
+const OR_BG = "hsl(28,100%,84%)";      /* slightly darker than before   */
 const OR_BORDER = "hsl(30,100%,55%)";
 const OR_TEXT = "hsl(26,86%,36%)";
 

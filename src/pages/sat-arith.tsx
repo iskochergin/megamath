@@ -50,7 +50,7 @@ const SATArithmeticDrill: React.FC = () => {
         let ans = "";
         const type =
             selected === "random"
-                ? tabs[randInt(0, tabs.length - 1)]
+                ? tabs[randInt(0, tabs.length - 2)]
                 : selected;
         if (type === "percent") {
             const p = [5, 10, 15, 20, 25, 30, 40, 50][randInt(0, 7)];

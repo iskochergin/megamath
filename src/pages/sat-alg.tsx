@@ -47,7 +47,7 @@ const AlgebraDrill: React.FC = () => {
         let ans = "";
         const type =
             selected === "random"
-                ? tabs[randInt(0, tabs.length - 1)]
+                ? tabs[randInt(0, tabs.length - 2)]
                 : selected;
 
         if (type === "one-step") {

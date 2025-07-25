@@ -142,7 +142,7 @@ const SATGeometryDrill: React.FC = () => {
             );
         } else {
             const A = ri(30, 65), B = ri(30, 65 - A), C = 180 - A - B;
-            q = `Angles: ${A}°,${B}°,x°. Find x.`;
+            q = `Angles: ${A}°, ${B}°, x°. Find x.`;
             a = `${C}`;
             svg = svgWrap(
                 <>
