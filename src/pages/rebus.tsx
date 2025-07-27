@@ -1,15 +1,12 @@
-/* pages/rebus.tsx ---------------------------------------------------- */
 import React, {useState, useEffect, useRef} from "react";
 import Head from "next/head";
 import Navbar from "../components/Navbar";
 import {GridPattern} from "@/components/GridPattern";
 
-/* ── palette (тот же, что в seq‑bubble) ───────────────────────────── */
 const OR_BG = "hsl(28,100%,84%)";
 const OR_BORDER = "hsl(30,100%,55%)";
 const OR_TEXT = "hsl(26,86%,36%)";
 
-/* ── helpers ──────────────────────────────────────────────────────── */
 type Shape = "▲" | "◼" | "●";
 
 interface RebusRound {
@@ -21,8 +18,45 @@ interface RebusRound {
 
 const shapes: Shape[] = ["▲", "◼", "●"];
 const ri = (a: number, b: number) => Math.floor(Math.random() * (b - a + 1)) + a;
-// const choice = <T, >(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
+/** Inline SVG icon so all shapes are the same visual size and align with text. */
+const ShapeIcon: React.FC<{ shape: Shape; className?: string }> = ({shape, className}) => {
+    return (
+        <svg
+            className={className ?? ""}
+            viewBox="0 0 24 24"
+            width="1em"
+            height="1em"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+        >
+            {shape === "▲" && <polygon points="12,3 21,19 3,19"/>}
+            {shape === "◼" && <rect x="4" y="4" width="16" height="16" rx="2"/>}
+            {shape === "●" && <circle cx="12" cy="12" r="9"/>}
+        </svg>
+    );
+};
+
+/** Render a line, replacing text shapes with uniform SVG icons. */
+const renderLine = (ln: string) => {
+    const parts = ln.split(/(▲|◼|●)/g);
+    return parts.map((p, i) => {
+        if (p === "▲" || p === "◼" || p === "●") {
+            return <ShapeIcon key={i} shape={p as Shape} className="eq-icon"/>;
+        }
+        return (
+            <span key={i} className="eq-text">
+        {p}
+      </span>
+        );
+    });
+};
+
+/** Build solvable two‑equation rebus (always unique solution). */
 const buildRebus = (level = 1): RebusRound => {
     const [a, b] = shapes.sort(() => 0.5 - Math.random()).slice(0, 2);
     const target = Math.random() < 0.5 ? a : b;
@@ -36,9 +70,7 @@ const buildRebus = (level = 1): RebusRound => {
 
     if (level < 4) {
         const diff = va - vb;
-        eq2 = diff >= 0
-            ? `${a} − ${b} = ${diff}`
-            : `${b} − ${a} = ${-diff}`;
+        eq2 = diff >= 0 ? `${a} − ${b} = ${diff}` : `${b} − ${a} = ${-diff}`;
         hint = "Add and subtract the two equations.";
     } else if (level < 7) {
         eq2 = `2 × ${a} = ${2 * va}`;
@@ -50,7 +82,6 @@ const buildRebus = (level = 1): RebusRound => {
     }
 
     const lines = [`${a} + ${b} = ${sum}`, eq2];
-
     return {lines, answerShape: target, answerValue: target === a ? va : vb, hint};
 };
 
@@ -119,9 +150,7 @@ const RebusDrill: React.FC = () => {
     const finish = (ok: boolean) => {
         setWait(true);
         setCd(2);
-        setFeedback(
-            ok ? "✔ Correct" : `Answer: ${round!.answerValue}`
-        );
+        setFeedback(ok ? "✔ Correct" : `Answer: ${round!.answerValue}`);
     };
 
     const check = () => {
@@ -149,8 +178,7 @@ const RebusDrill: React.FC = () => {
         background: OR_BG,
         border: `4px solid ${OR_BORDER}`,
         color: OR_TEXT,
-        filter:
-            glow === "0px" ? "none" : `drop-shadow(0 0 ${glow} rgba(255,80,0,0.55))`,
+        filter: glow === "0px" ? "none" : `drop-shadow(0 0 ${glow} rgba(255,80,0,0.55))`,
     };
 
     return (
@@ -165,24 +193,23 @@ const RebusDrill: React.FC = () => {
 
                 <div
                     ref={cardRef}
-                    className={`fadeIn relative z-10 mt-4 w-11/12 sm:w-11/12 md:w-8/12 lg:w-7/12 xl:w-1/2
+                    className={`fadeIn relative z-10 mt-4
+            w-11/12 sm:w-11/12 md:w-8/12 lg:w-7/12 xl:w-1/2
             max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl
             bg-[rgb(var(--primary))] dark:bg-[rgb(var(--secondary))]
             text-[rgb(var(--foreground))]
             rounded-2xl shadow-background backdrop-blur-md
-            p-5 sm:p-8 md:py-12 md:px-10 transition-all duration-300 ease-in-out`}
+            p-4 sm:p-6 md:py-12 md:px-10 transition-all duration-300 ease-in-out`}
                 >
                     {/* info */}
-                    <div className="flex justify-between text-xs sm:text-sm mb-4">
+                    <div className="flex justify-between text-[12px] sm:text-base mb-3 sm:mb-4">
                         <span>{elapsed.toFixed(1)} s</span>
-                        <span>
-              Streak {streak} (best {bestStreak}) · Lv {level}
-            </span>
+                        <span>Streak {streak} (best {bestStreak}) · Lv {level}</span>
                     </div>
 
                     {/* hint */}
-                    <div className="flex items-center gap-2 mb-6">
-                        <button onClick={() => setShowHint((h) => !h)} className="pill">
+                    <div className="flex items-center gap-2 mb-4 sm:mb-6">
+                        <button onClick={() => setShowHint((h) => !h)} className="pill xs-pill">
                             Hint
                         </button>
                         <div
@@ -191,35 +218,39 @@ const RebusDrill: React.FC = () => {
                             } transition-[max-width] duration-500`}
                         >
                             {showHint && (
-                                <p className="whitespace-nowrap animate-typing text-sm leading-snug">
+                                <p className="whitespace-nowrap animate-typing text-sm sm:text-base leading-snug">
                                     {round.hint}
                                 </p>
                             )}
                         </div>
                     </div>
 
-                    <h2 className="text-center text-2xl sm:text-3xl font-extrabold mb-8">
+                    <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-extrabold mb-6 sm:mb-8">
                         Solve the rebus
                     </h2>
 
                     {/* equations */}
-                    <div className="flex flex-col items-center gap-3 mb-8">
+                    <div className="flex flex-col items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
                         {round.lines.map((ln, i) => (
                             <div
                                 key={i}
-                                className="w-max px-4 py-2 rounded-full font-semibold text-lg animation-pop"
+                                /* same size as the answer oval */
+                                className="equation leading-none w-32 h-14 sm:w-36 sm:h-16 rounded-full flex items-center justify-center font-semibold text-xl sm:text-xl animation-pop"
                                 style={{...bubbleCss, animationDelay: `${i * 0.1}s`}}
                             >
-                                {ln}
+                                {renderLine(ln)}
                             </div>
                         ))}
 
-                        {/* answer */}
+                        {/* answer (reference size) */}
                         <div
-                            className="w-32 h-14 rounded-full flex items-center justify-center animation-pop"
+                            className="ans-bubble leading-none w-32 h-14 sm:w-36 sm:h-16 rounded-full flex items-center justify-center animation-pop"
                             style={{...bubbleCss, animationDelay: "0.25s"}}
                         >
-                            <span className="mr-2">{round.answerShape} =</span>
+              <span className="mr-2 inline-flex items-center sm:text-xl leading-none font-semibold text-xl">
+                <ShapeIcon shape={round.answerShape} className="eq-icon"/>
+                <span className="ml-1 eq-text">=</span>
+              </span>
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -227,19 +258,19 @@ const RebusDrill: React.FC = () => {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value.replace(/[^0-9\-]/g, ""))}
                                 onKeyDown={(e) => e.key === "Enter" && check()}
-                                className="w-14 bg-transparent text-center font-bold text-lg focus:outline-none"
+                                className="answerInput w-14 sm:w-16 bg-transparent text-center font-bold text-xl sm:text-xl focus:outline-none leading-none"
                             />
                         </div>
                     </div>
 
                     {/* feedback */}
                     {feedback && (
-                        <div className="text-center mb-6 min-h-[1.5rem]">
+                        <div className="text-center mb-5 sm:mb-6 min-h-[1.5rem]">
                             <p
                                 className={
-                                    feedback.startsWith("✔")
-                                        ? "text-green-700 font-semibold dark:text-green-400"
-                                        : "text-rose-700 font-semibold dark:text-rose-400"
+                                    (feedback.startsWith("✔")
+                                        ? "text-green-700 dark:text-green-400 "
+                                        : "text-rose-700 dark:text-rose-400 ") + "font-semibold text-base sm:text-lg"
                                 }
                             >
                                 {feedback}
@@ -256,23 +287,23 @@ const RebusDrill: React.FC = () => {
 
                     {/* mobile keypad */}
                     <div className="md:hidden w-full">
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                             {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
-                                <button key={d} onClick={() => addDigit(d)} className="key">
+                                <button key={d} onClick={() => addDigit(d)} className="key xs-key">
                                     {d}
                                 </button>
                             ))}
                         </div>
-                        <div className="grid grid-cols-3 gap-2 mt-2">
-                            <button onClick={() => setInput((v) => v.slice(0, -1))} className="key">
+                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
+                            <button onClick={() => setInput((v) => v.slice(0, -1))} className="key xs-key">
                                 Del
                             </button>
-                            <button onClick={() => addDigit("0")} className="key">
+                            <button onClick={() => addDigit("0")} className="key xs-key">
                                 0
                             </button>
                             <button
                                 onClick={check}
-                                className="px-4 py-2 rounded-lg bg-black dark:bg-white text-white dark:text-black font-semibold active:scale-95 transition"
+                                className="px-3 py-2 sm:px-4 rounded-lg bg-black dark:bg-white text-white dark:text-black font-semibold active:scale-95 transition"
                             >
                                 {wait ? "Next" : "Check"}
                             </button>
@@ -281,7 +312,7 @@ const RebusDrill: React.FC = () => {
                 </div>
             </main>
 
-            {/* STYLE (тот же, что в seq‑bubble) */}
+            {/* STYLE (alignment fixes + keep previous styles) */}
             <style jsx>{`
                 .pill {
                     padding: 0.45rem 1rem;
@@ -290,6 +321,7 @@ const RebusDrill: React.FC = () => {
                     color: rgb(var(--foreground));
                     font-weight: 600;
                     transition: background 0.2s;
+                    font-size: 0.95rem;
                 }
 
                 .pill:hover {
@@ -297,16 +329,37 @@ const RebusDrill: React.FC = () => {
                 }
 
                 .key {
-                    padding: 0.6rem 0;
+                    padding: 0.75rem 0;
                     border-radius: 0.38rem;
                     background: rgba(var(--foreground-rgb, 0, 0, 0), 0.07);
                     border: 1px solid rgba(var(--foreground-rgb), 0.15);
-                    font-size: 1.1rem;
+                    font-size: 1.25rem;
                     font-weight: 600;
                     color: rgb(var(--foreground));
                 }
 
-                /* pop / fade / typing keyframes — без изменений */
+                .equation, .ans-bubble {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    line-height: 1;
+                }
+
+                .eq-text {
+                    display: inline-block;
+                    vertical-align: middle;
+                    font-variant-numeric: tabular-nums;
+                }
+
+                .eq-icon {
+                    display: inline-block;
+                    vertical-align: middle;
+                    width: 1.25em;
+                    height: 1.25em;
+                    //transform: translateY(-0.5em); /* lift icons to sit perfectly centered */
+                }
+
+                /* pop / fade / typing keyframes */
                 .animation-pop {
                     animation: pop 0.47s cubic-bezier(0.55, 1.4, 0.4, 1) both;
                 }
@@ -367,6 +420,26 @@ const RebusDrill: React.FC = () => {
 
                 .animate-typing {
                     animation: typing 1.3s steps(38, end) forwards;
+                }
+
+                /* xs‑only keypad sizing kept */
+                @media (max-width: 380px) {
+                    .xs-pill {
+                        padding: 0.35rem 0.8rem;
+                        border-radius: 0.4rem;
+                        font-size: 0.95rem;
+                    }
+
+                    .xs-key {
+                        padding: 0.6rem 0;
+                        font-size: 1.1rem;
+                        border-radius: 0.34rem;
+                    }
+
+                    .answerInput {
+                        width: 2.5rem;
+                        font-size: 1rem;
+                    }
                 }
             `}</style>
         </>
